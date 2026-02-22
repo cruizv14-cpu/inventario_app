@@ -1,0 +1,18 @@
+# ======================
+# BASE DE DATOS
+# ======================
+backend/inventario.db
+
+# ======================
+# PYTHON
+# ======================
+backend/__pycache__/
+backend/*.pyc
+backend/venv/
+
+# ======================
+# FLUTTER
+# ======================
+proyecto_inventario/build/
+proyecto_inventario/.dart_tool/
+proyecto_inventario/.idea/
