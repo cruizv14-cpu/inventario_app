@@ -272,18 +272,91 @@ class _DashboardPageState extends State<DashboardPage> {
     return Column(
       children: [
         Expanded(
-          child: PageView.builder(
-            controller: _kpiController,
-            itemCount: _kpis.length,
-            onPageChanged: (index) => setState(() => _currentKpiIndex = index),
-            itemBuilder: (context, index) {
-              final kpi = _kpis[index];
-              return _buildKpiCard(kpi, index == _currentKpiIndex);
-            },
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              PageView.builder(
+                controller: _kpiController,
+                itemCount: _kpis.length,
+                onPageChanged: (index) => setState(() => _currentKpiIndex = index),
+                itemBuilder: (context, index) {
+                  final kpi = _kpis[index];
+                  // Padding para que las flechas no tapen el contenido de la tarjeta
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: _buildKpiCard(kpi, index == _currentKpiIndex),
+                  );
+                },
+              ),
+              // Flecha Izquierda
+              Positioned(
+                left: 0,
+                child: _buildFlechaNavegacionKpi(esIzquierda: true),
+              ),
+              // Flecha Derecha
+              Positioned(
+                right: 0,
+                child: _buildFlechaNavegacionKpi(esIzquierda: false),
+              ),
+            ],
           ),
         ),
+        const SizedBox(height: 8),
         _buildCarouselIndicators(_kpis.length, _currentKpiIndex),
       ],
+    );
+  }
+
+  Widget _buildFlechaNavegacionKpi({required bool esIzquierda}) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 2),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.9),
+        shape: BoxShape.circle,
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          )
+        ],
+      ),
+      child: IconButton(
+        icon: Icon(
+          esIzquierda ? Icons.arrow_back_ios_new : Icons.arrow_forward_ios,
+          color: Colors.deepPurple,
+          size: 18,
+        ),
+        onPressed: () {
+          if (esIzquierda) {
+            if (_currentKpiIndex > 0) {
+              _kpiController.previousPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            } else {
+              _kpiController.animateToPage(
+                _kpis.length - 1,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            }
+          } else {
+            if (_currentKpiIndex < _kpis.length - 1) {
+              _kpiController.nextPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            } else {
+              _kpiController.animateToPage(
+                0,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            }
+          }
+        },
+      ),
     );
   }
 
