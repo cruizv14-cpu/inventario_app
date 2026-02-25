@@ -6,6 +6,7 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import '../widgets/app_header.dart';
 import 'package:intl/intl.dart';
 import '../services/report_service.dart';
+import '../utils/constants.dart';
 
 
 class DashboardPage extends StatefulWidget {
@@ -18,7 +19,7 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   List stockBajo = [];
   bool loading = true;
-  final String baseUrl = "http://127.0.0.1:8000";
+  final String baseUrl = apiBaseUrl;
   Map<String, dynamic> resumen = {};
 
   // Datos para gráficos

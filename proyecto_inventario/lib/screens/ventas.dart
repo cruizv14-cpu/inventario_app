@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import '../widgets/app_header.dart';
+import '../utils/constants.dart';
 
 class VentasPage extends StatefulWidget {
   const VentasPage({super.key});
@@ -19,7 +20,7 @@ class _VentasPageState extends State<VentasPage> {
   List<Map<String, dynamic>> productos = [];
   bool loading = true;
 
-  final String baseUrl = "http://127.0.0.1:8000";
+  final String baseUrl = apiBaseUrl;
 
   // Filtros
   DateTime? fechaDesde;

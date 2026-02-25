@@ -1,6 +1,7 @@
 import 'dart:io' show File, Platform;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import '../utils/constants.dart';
 
 // PARA WEB
 import 'dart:html' as html;
@@ -11,7 +12,7 @@ import 'package:open_filex/open_filex.dart';
 
 class ReportService {
   final Dio _dio = Dio(BaseOptions(
-    baseUrl: "http://127.0.0.1:8000",
+    baseUrl: apiBaseUrl,
     responseType: ResponseType.bytes,
   ));
 

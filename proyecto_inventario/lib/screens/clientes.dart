@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../widgets/app_header.dart';
 import '../utils/comunas.dart';
+import '../utils/constants.dart';
 
 class ClientesPage extends StatefulWidget {
   const ClientesPage({super.key});
@@ -17,7 +18,7 @@ class _ClientesPageState extends State<ClientesPage> {
   List clientesFiltrados = [];
   bool loading = true;
 
-  final String apiUrl = "http://127.0.0.1:8000/clientes";
+  final String apiUrl = "$apiBaseUrl/clientes";
 
   final TextEditingController nombreCtrl = TextEditingController();
   final TextEditingController telefonoCtrl = TextEditingController();

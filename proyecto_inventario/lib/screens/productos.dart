@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../widgets/app_header.dart';
+import '../utils/constants.dart';
 
 class ProductosPage extends StatefulWidget {
   const ProductosPage({super.key});
@@ -15,7 +16,7 @@ class _ProductosPageState extends State<ProductosPage> {
   List productosFiltrados = [];
   bool loading = true;
 
-  final String apiUrl = "http://127.0.0.1:8000/productos";
+  final String apiUrl = "$apiBaseUrl/productos";
 
   final TextEditingController nombreCtrl = TextEditingController();
   final TextEditingController descripcionCtrl = TextEditingController();

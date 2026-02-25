@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import '../widgets/app_header.dart';
+import '../utils/constants.dart';
 
 class MermasPage extends StatefulWidget {
   const MermasPage({super.key});
@@ -13,7 +14,7 @@ class MermasPage extends StatefulWidget {
 }
 
 class _MermasPageState extends State<MermasPage> {
-  final String baseUrl = "http://127.0.0.1:8000";
+  final String baseUrl = apiBaseUrl;
   List<Map<String, dynamic>> mermas = [];
   List<Map<String, dynamic>> mermasFiltradas = [];
   List<Map<String, dynamic>> productos = [];
