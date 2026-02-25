@@ -699,13 +699,18 @@ def obtener_margenes_productos():
             p.precio_compra,
             p.precio_venta,
             (p.precio_venta - p.precio_compra) as margen_unitario,
+            CASE 
+                WHEN p.precio_compra > 0 
+                THEN ROUND(((p.precio_venta - p.precio_compra) * 100.0 / p.precio_compra), 2)
+                ELSE 0
+            END as margen_porcentaje,
             COALESCE(SUM(dv.cantidad), 0) as total_vendido,
             (p.precio_venta - p.precio_compra) * COALESCE(SUM(dv.cantidad), 0) as margen_total
         FROM productos p
         LEFT JOIN detalle_ventas dv ON p.id_producto = dv.id_producto
+        WHERE p.precio_compra > 0 AND p.precio_venta > 0
         GROUP BY p.id_producto, p.nombre, p.precio_compra, p.precio_venta
-        HAVING total_vendido > 0
-        ORDER BY margen_total DESC
+        ORDER BY margen_porcentaje DESC
     """)
     rows = [dict(row) for row in cur.fetchall()]
     con.close()
