@@ -16,14 +16,11 @@ from db import (
 from reports import router as reports_router
 import jwt
 import datetime
-from passlib.context import CryptContext
 
 # Configuración de JWT
 SECRET_KEY = "MI_SECRETO_INVENTARIO_SUPER_SEGURO"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 1 semana
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 # Inicializar DB y Usuario Admin
@@ -98,7 +95,8 @@ class Merma(BaseModel):
 # ENDPOINTS AUTENTICACIÓN
 # ------------------------
 def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+    import bcrypt
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 def create_access_token(data: dict):
     to_encode = data.copy()

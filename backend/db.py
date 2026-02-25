@@ -130,8 +130,7 @@ def init_db():
         release_connection(con)
 
 def init_admin_user():
-    from passlib.context import CryptContext
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    import bcrypt
     
     con = get_connection()
     try:
@@ -140,7 +139,8 @@ def init_admin_user():
         admin = cur.fetchone()
         
         if not admin:
-            hashed_password = pwd_context.hash("admin123")
+            # Hash usando bcrypt nativamente
+            hashed_password = bcrypt.hashpw(b"admin123", bcrypt.gensalt()).decode('utf-8')
             cur.execute("""
                 INSERT INTO usuarios (username, password_hash, rol)
                 VALUES (%s, %s, %s)
