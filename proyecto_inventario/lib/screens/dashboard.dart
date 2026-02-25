@@ -138,51 +138,35 @@ class _DashboardPageState extends State<DashboardPage> {
     },
   ];
 
-  // Lista de gráficos disponibles
+  // Lista de gráficos disponibles — siempre se muestran los 5 gráficos
   List<Map<String, dynamic>> get _graficosDisponibles {
-    List<Map<String, dynamic>> graficos = [];
-
-    if (productosMasVendidos.isNotEmpty) {
-      graficos.add({
+    return [
+      {
         'titulo': 'Productos Más Vendidos',
         'tipo': 'productos_vendidos',
         'icon': '🔥'
-      });
-    }
-
-    if (clientesTop.isNotEmpty) {
-      graficos.add({
+      },
+      {
         'titulo': 'Mejores Clientes',
         'tipo': 'clientes_top',
         'icon': '👑'
-      });
-    }
-
-    if (proveedoresTop.isNotEmpty) {
-      graficos.add({
+      },
+      {
         'titulo': 'Proveedores Principales',
         'tipo': 'proveedores_top',
         'icon': '🚚'
-      });
-    }
-
-    if (ventasPorComuna.isNotEmpty) {
-      graficos.add({
+      },
+      {
         'titulo': 'Ventas por Comuna',
         'tipo': 'ventas_comuna',
         'icon': '🗺️'
-      });
-    }
-
-    if (margenesProductos.isNotEmpty) {
-      graficos.add({
+      },
+      {
         'titulo': 'Margen de Productos',
         'tipo': 'margenes',
         'icon': '💹'
-      });
-    }
-
-    return graficos;
+      },
+    ];
   }
 
   // 📈 FUNCIONES PARA CARGAR DATOS
