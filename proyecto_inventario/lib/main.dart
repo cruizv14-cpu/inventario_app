@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart'; // 👈 Import necesario
 import 'screens/dashboard.dart'; // Importamos el dashboard
+import 'screens/login.dart'; // Importamos el login
+import 'services/auth_service.dart'; // Importamos el servicio de auth
 
 // 🔹 Observador de rutas
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
@@ -33,7 +35,23 @@ class MyApp extends StatelessWidget {
       ],
       locale: const Locale('es', 'ES'),
 
-      home: const DashboardPage(), // Pantalla inicial
+      home: FutureBuilder<bool>(
+        future: AuthService.isLoggedIn(),
+        builder: (context, snapshot) {
+          // Mientras carga SharedPreferences
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator(color: Colors.deepPurple)),
+            );
+          }
+          // Si tiene token, va al Dashboard; si no, al Login
+          if (snapshot.hasData && snapshot.data == true) {
+            return const DashboardPage();
+          } else {
+            return const LoginPage();
+          }
+        },
+      ), // Pantalla inicial protegida
     );
   }
 }

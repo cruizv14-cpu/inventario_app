@@ -6,6 +6,8 @@ import '../screens/ventas.dart';
 import '../screens/compras.dart';
 import '../screens/mermas.dart';
 import '../screens/dashboard.dart';
+import '../services/auth_service.dart';
+import '../screens/login.dart';
 
 class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final BuildContext parentContext;
@@ -105,6 +107,27 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                   );
                 },
               ),
+              const SizedBox(width: 16),
+              // Botón de Cerrar Sesión
+              ElevatedButton.icon(
+                icon: const Icon(Icons.logout),
+                label: const Text("Cerrar Sesión"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () async {
+                  await AuthService.logout();
+                  if (parentContext.mounted) {
+                    Navigator.pushAndRemoveUntil(
+                      parentContext,
+                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                      (route) => false,
+                    );
+                  }
+                },
+              ),
+              const SizedBox(width: 8),
             ],
           ),
         ),
