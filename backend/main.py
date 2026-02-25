@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 
 from db import (
-    init_db,
+    init_db, init_admin_user, obtener_usuario_por_username,
     listar_productos, insertar_producto, obtener_producto, actualizar_producto, eliminar_producto,
     listar_proveedores, insertar_proveedor, obtener_proveedor, actualizar_proveedor, eliminar_proveedor,
     listar_clientes, insertar_cliente, obtener_cliente, actualizar_cliente, eliminar_cliente,
@@ -14,9 +14,21 @@ from db import (
     obtener_ventas_por_comuna, obtener_margenes_productos
 )
 from reports import router as reports_router
+import jwt
+import datetime
+from passlib.context import CryptContext
 
-# Inicializar DB
+# Configuración de JWT
+SECRET_KEY = "MI_SECRETO_INVENTARIO_SUPER_SEGURO"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 1 semana
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+# Inicializar DB y Usuario Admin
 init_db()
+init_admin_user()
 
 app = FastAPI(title="API de Inventario")
 
@@ -32,6 +44,10 @@ app.include_router(reports_router)
 # ------------------------
 # MODELOS Pydantic
 # ------------------------
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
 class Producto(BaseModel):
     nombre: str
     descripcion: Optional[str] = ""
@@ -77,6 +93,31 @@ class Merma(BaseModel):
     cantidad: int
     motivo: str
     observacion: Optional[str] = ""
+
+# ------------------------
+# ENDPOINTS AUTENTICACIÓN
+# ------------------------
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.datetime.utcnow() + datetime.timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+@app.post("/login")
+def login(request: LoginRequest):
+    user = obtener_usuario_por_username(request.username)
+    if not user:
+        raise HTTPException(status_code=400, detail="Usuario incorrecto")
+    
+    if not verify_password(request.password, user["password_hash"]):
+        raise HTTPException(status_code=400, detail="Contraseña incorrecta")
+        
+    access_token = create_access_token(data={"sub": user["username"], "rol": user["rol"]})
+    return {"access_token": access_token, "token_type": "bearer", "rol": user["rol"]}
 
 # ------------------------
 # ENDPOINTS PRODUCTOS

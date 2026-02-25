@@ -116,9 +116,53 @@ def init_db():
         );
         """)
 
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id SERIAL PRIMARY KEY,
+            username TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            rol TEXT DEFAULT 'user'
+        );
+        """)
+
         con.commit()
     finally:
         release_connection(con)
+
+def init_admin_user():
+    from passlib.context import CryptContext
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    
+    con = get_connection()
+    try:
+        cur = con.cursor(cursor_factory=DictCursor)
+        cur.execute("SELECT id FROM usuarios WHERE username = 'admin'")
+        admin = cur.fetchone()
+        
+        if not admin:
+            hashed_password = pwd_context.hash("admin123")
+            cur.execute("""
+                INSERT INTO usuarios (username, password_hash, rol)
+                VALUES (%s, %s, %s)
+            """, ("admin", hashed_password, "admin"))
+            con.commit()
+            print("Usuario 'admin' creado exitosamente.")
+    finally:
+        release_connection(con)
+
+# ------------------------
+# CRUD USUARIOS
+# ------------------------
+def obtener_usuario_por_username(username: str):
+    con = get_connection()
+    try:
+        cur = con.cursor(cursor_factory=DictCursor)
+        cur.execute("SELECT * FROM usuarios WHERE username = %s", (username,))
+        row = cur.fetchone()
+        return dict(row) if row else None
+    finally:
+        release_connection(con)
+
 
 # ------------------------
 # CRUD PRODUCTOS
