@@ -548,70 +548,68 @@ class _VentasPageState extends State<VentasPage> {
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(mobile ? 10 : 16),
         child: Column(
           children: [
-            // filtros
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: pickDesde,
-                    child: Text(fechaDesde == null
-                        ? "Desde"
-                        : "Desde: ${formatDate(fechaDesde!)}"),
-                  ),
-                ),
+            // Filtros
+            mobile
+                ? Column(children: [
+                    Row(children: [
+                      Expanded(child: OutlinedButton(onPressed: pickDesde, child: Text(fechaDesde == null ? "Desde" : "Desde: ${formatDate(fechaDesde!)}"))),
+                      const SizedBox(width: 8),
+                      Expanded(child: OutlinedButton(onPressed: pickHasta, child: Text(fechaHasta == null ? "Hasta" : "Hasta: ${formatDate(fechaHasta!)}"))),
+                    ]),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String?>(
+                      value: clienteSeleccionado,
+                      hint: const Text("Cliente"),
+                      decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                      items: [
+                        const DropdownMenuItem<String?>(value: null, child: Text("Todos")),
+                        const DropdownMenuItem<String?>(value: "Sin cliente", child: Text("Sin cliente")),
+                        ...clientes.map((c) => DropdownMenuItem<String?>(value: c["nombre"], child: Text(c["nombre"] ?? "-"))),
+                      ],
+                      onChanged: (v) => setState(() => clienteSeleccionado = v),
+                    ),
+                  ])
+                : Row(children: [
+                    Expanded(child: OutlinedButton(onPressed: pickDesde, child: Text(fechaDesde == null ? "Desde" : "Desde: ${formatDate(fechaDesde!)}"))),
+                    const SizedBox(width: 8),
+                    Expanded(child: OutlinedButton(onPressed: pickHasta, child: Text(fechaHasta == null ? "Hasta" : "Hasta: ${formatDate(fechaHasta!)}"))),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      flex: 2,
+                      child: DropdownButtonFormField<String?>(
+                        value: clienteSeleccionado,
+                        hint: const Text("Filtrar por cliente"),
+                        decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                        items: [
+                          const DropdownMenuItem<String?>(value: null, child: Text("Todos los clientes")),
+                          const DropdownMenuItem<String?>(value: "Sin cliente", child: Text("Sin cliente")),
+                          ...clientes.map((c) => DropdownMenuItem<String?>(value: c["nombre"], child: Text(c["nombre"] ?? "-"))),
+                        ],
+                        onChanged: (v) => setState(() => clienteSeleccionado = v),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      onPressed: aplicarFiltros,
+                      icon: const Icon(Icons.filter_list),
+                      label: const Text("Filtrar"),
+                      style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)),
+                    ),
+                    const SizedBox(width: 4),
+                    TextButton(onPressed: limpiarFiltros, child: const Text("Limpiar")),
+                  ]),
+            if (mobile) ...[
+              const SizedBox(height: 8),
+              Row(children: [
+                ElevatedButton(onPressed: aplicarFiltros, child: const Text("Filtrar")),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: pickHasta,
-                    child: Text(fechaHasta == null
-                        ? "Hasta"
-                        : "Hasta: ${formatDate(fechaHasta!)}"),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  // FILTRO POR NOMBRE - NUEVA VERSIÓN
-                  child: DropdownButtonFormField<String?>(
-                    value: clienteSeleccionado,
-                    hint: const Text("Cliente"),
-                    items: [
-                      const DropdownMenuItem<String?>(
-                          value: null, child: Text("Todos")),
-                      const DropdownMenuItem<String?>(
-                          value: "Sin cliente", child: Text("Sin cliente")),
-                      ...clientes.map((c) {
-                        return DropdownMenuItem<String?>(
-                          value: c["nombre"],
-                          child: Text(c["nombre"] ?? "-"),
-                        );
-                      }).toList(),
-                    ],
-                    onChanged: (v) {
-                      setState(() => clienteSeleccionado = v);
-                      debugPrint("Cliente seleccionado: $v");
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                ElevatedButton(
-                  onPressed: aplicarFiltros,
-                  child: const Text("Filtrar"),
-                ),
-                const SizedBox(width: 8),
-                TextButton(
-                    onPressed: limpiarFiltros,
-                    child: const Text("Limpiar")),
-              ],
-            ),
+                TextButton(onPressed: limpiarFiltros, child: const Text("Limpiar")),
+              ]),
+            ],
             const SizedBox(height: 12),
-            // Información de filtros aplicados
             if (fechaDesde != null || fechaHasta != null || clienteSeleccionado != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
@@ -623,44 +621,68 @@ class _VentasPageState extends State<VentasPage> {
             Expanded(
               child: ventasFiltradas.isEmpty
                   ? const Center(child: Text("No hay ventas que mostrar"))
-                  : ListView.builder(
-                itemCount: ventasFiltradas.length,
-                itemBuilder: (context, index) {
-                  final v = ventasFiltradas[index];
-                  final fechaStr = v['fecha']?.toString() ?? '';
-                  final fechaParsed = DateTime.tryParse(fechaStr);
-                  final fechaDisplay = fechaParsed != null
-                      ? _formatearFecha(fechaParsed.toString())
-                      : fechaStr;
-                  return Card(
-                    child: ListTile(
-                      title: Text(
-                          "Venta #${v["id_venta"]} - $fechaDisplay"),
-                      subtitle: Text(
-                          "Cliente: ${v["cliente"] ?? "Sin cliente"}\nTotal: \$${v["total"]}"),
-                      isThreeLine: true,
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                              icon: const Icon(Icons.visibility),
-                              onPressed: () => showVentaDetalle(
-                                  v["id_venta"])),
-                          IconButton(
-                              icon: const Icon(Icons.delete,
-                                  color: Colors.red),
-                              onPressed: () =>
-                                  deleteVenta(v["id_venta"])),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
+                  : mobile
+                      ? _buildMobileList()
+                      : _buildDesktopTable(),
             ),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildMobileList() => ListView.builder(
+    itemCount: ventasFiltradas.length,
+    itemBuilder: (context, index) {
+      final v = ventasFiltradas[index];
+      final fechaParsed = DateTime.tryParse(v['fecha']?.toString() ?? '');
+      final fechaDisplay = fechaParsed != null ? _formatearFecha(fechaParsed.toString()) : (v['fecha']?.toString() ?? '');
+      return Card(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: ListTile(
+          title: Text("Venta #${v["id_venta"]} — $fechaDisplay", style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text("Cliente: ${v["cliente"] ?? "Sin cliente"}\nTotal: \$${v["total"]}"),
+          isThreeLine: true,
+          trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+            IconButton(icon: const Icon(Icons.visibility), onPressed: () => showVentaDetalle(v["id_venta"])),
+            IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => deleteVenta(v["id_venta"])),
+          ]),
+        ),
+      );
+    },
+  );
+
+  Widget _buildDesktopTable() => SizedBox(
+    width: double.infinity,
+    child: SingleChildScrollView(
+      child: DataTable(
+        headingRowColor: WidgetStateProperty.all(Colors.deepPurple.shade50),
+        columnSpacing: 32,
+        dataRowMinHeight: 48,
+        dataRowMaxHeight: 56,
+        columns: const [
+          DataColumn(label: Expanded(child: Text("#", style: TextStyle(fontWeight: FontWeight.bold)))),
+          DataColumn(label: Expanded(child: Text("Fecha", style: TextStyle(fontWeight: FontWeight.bold)))),
+          DataColumn(label: Expanded(child: Text("Cliente", style: TextStyle(fontWeight: FontWeight.bold)))),
+          DataColumn(label: Expanded(child: Text("Total", style: TextStyle(fontWeight: FontWeight.bold)))),
+          DataColumn(label: Text("Acciones", style: TextStyle(fontWeight: FontWeight.bold))),
+        ],
+        rows: ventasFiltradas.map<DataRow>((v) {
+          final fechaParsed = DateTime.tryParse(v['fecha']?.toString() ?? '');
+          final fechaDisplay = fechaParsed != null ? _formatearFecha(fechaParsed.toString()) : (v['fecha']?.toString() ?? '');
+          return DataRow(cells: [
+            DataCell(Text("#${v["id_venta"]}")),
+            DataCell(Text(fechaDisplay)),
+            DataCell(Text(v["cliente"] ?? "Sin cliente")),
+            DataCell(Text("\$${v["total"]}")),
+            DataCell(Row(children: [
+              IconButton(icon: const Icon(Icons.visibility, color: Colors.indigo, size: 20), onPressed: () => showVentaDetalle(v["id_venta"])),
+              IconButton(icon: const Icon(Icons.delete, color: Colors.red, size: 20), onPressed: () => deleteVenta(v["id_venta"])),
+            ])),
+          ]);
+        }).toList(),
+      ),
+    ),
+  );
 }

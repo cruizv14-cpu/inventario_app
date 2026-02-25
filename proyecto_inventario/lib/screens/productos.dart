@@ -240,20 +240,22 @@ class _ProductosPageState extends State<ProductosPage> {
   }
 
   Widget _buildDesktopTable() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
+    return SizedBox(
+      width: double.infinity,
       child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
+        scrollDirection: Axis.vertical,
         child: DataTable(
           headingRowColor: WidgetStateProperty.all(Colors.deepPurple.shade50),
-          columnSpacing: 24,
+          columnSpacing: 32,
+          dataRowMinHeight: 48,
+          dataRowMaxHeight: 56,
           columns: const [
-            DataColumn(label: Text("Nombre", style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text("Descripción", style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text("P. Compra", style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text("P. Venta", style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text("Stock", style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text("Stock Min.", style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Expanded(child: Text("Nombre", style: TextStyle(fontWeight: FontWeight.bold)))),
+            DataColumn(label: Expanded(child: Text("Descripción", style: TextStyle(fontWeight: FontWeight.bold)))),
+            DataColumn(label: Expanded(child: Text("P. Compra", style: TextStyle(fontWeight: FontWeight.bold)))),
+            DataColumn(label: Expanded(child: Text("P. Venta", style: TextStyle(fontWeight: FontWeight.bold)))),
+            DataColumn(label: Expanded(child: Text("Stock", style: TextStyle(fontWeight: FontWeight.bold)))),
+            DataColumn(label: Expanded(child: Text("Stock Min.", style: TextStyle(fontWeight: FontWeight.bold)))),
             DataColumn(label: Text("Acciones", style: TextStyle(fontWeight: FontWeight.bold))),
           ],
           rows: productosFiltrados.map<DataRow>((p) => DataRow(cells: [

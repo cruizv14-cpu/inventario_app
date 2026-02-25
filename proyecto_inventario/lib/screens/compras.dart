@@ -520,70 +520,68 @@ class _ComprasPageState extends State<ComprasPage> {
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(mobile ? 10 : 16),
         child: Column(
           children: [
-            // filtros: Fecha Desde / Hasta y Proveedor
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: pickDesde,
-                    child: Text(fechaDesde == null
-                        ? "Desde"
-                        : "Desde: ${formatDate(fechaDesde!)}"),
-                  ),
-                ),
+            // Filtros
+            mobile
+                ? Column(children: [
+                    Row(children: [
+                      Expanded(child: OutlinedButton(onPressed: pickDesde, child: Text(fechaDesde == null ? "Desde" : "Desde: ${formatDate(fechaDesde!)}"))),
+                      const SizedBox(width: 8),
+                      Expanded(child: OutlinedButton(onPressed: pickHasta, child: Text(fechaHasta == null ? "Hasta" : "Hasta: ${formatDate(fechaHasta!)}"))),
+                    ]),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String?>(
+                      value: proveedorSeleccionado,
+                      hint: const Text("Proveedor"),
+                      decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                      items: [
+                        const DropdownMenuItem<String?>(value: null, child: Text("Todos")),
+                        const DropdownMenuItem<String?>(value: "Sin proveedor", child: Text("Sin proveedor")),
+                        ...proveedores.map((p) => DropdownMenuItem<String?>(value: p["nombre"], child: Text(p["nombre"] ?? "-"))),
+                      ],
+                      onChanged: (v) => setState(() => proveedorSeleccionado = v),
+                    ),
+                  ])
+                : Row(children: [
+                    Expanded(child: OutlinedButton(onPressed: pickDesde, child: Text(fechaDesde == null ? "Desde" : "Desde: ${formatDate(fechaDesde!)}"))),
+                    const SizedBox(width: 8),
+                    Expanded(child: OutlinedButton(onPressed: pickHasta, child: Text(fechaHasta == null ? "Hasta" : "Hasta: ${formatDate(fechaHasta!)}"))),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      flex: 2,
+                      child: DropdownButtonFormField<String?>(
+                        value: proveedorSeleccionado,
+                        hint: const Text("Filtrar por proveedor"),
+                        decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                        items: [
+                          const DropdownMenuItem<String?>(value: null, child: Text("Todos los proveedores")),
+                          const DropdownMenuItem<String?>(value: "Sin proveedor", child: Text("Sin proveedor")),
+                          ...proveedores.map((p) => DropdownMenuItem<String?>(value: p["nombre"], child: Text(p["nombre"] ?? "-"))),
+                        ],
+                        onChanged: (v) => setState(() => proveedorSeleccionado = v),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      onPressed: aplicarFiltros,
+                      icon: const Icon(Icons.filter_list),
+                      label: const Text("Filtrar"),
+                      style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)),
+                    ),
+                    const SizedBox(width: 4),
+                    TextButton(onPressed: limpiarFiltros, child: const Text("Limpiar")),
+                  ]),
+            if (mobile) ...[
+              const SizedBox(height: 8),
+              Row(children: [
+                ElevatedButton(onPressed: aplicarFiltros, child: const Text("Filtrar")),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: pickHasta,
-                    child: Text(fechaHasta == null
-                        ? "Hasta"
-                        : "Hasta: ${formatDate(fechaHasta!)}"),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  // FILTRO POR NOMBRE DE PROVEEDOR - NUEVA VERSIÓN
-                  child: DropdownButtonFormField<String?>(
-                    value: proveedorSeleccionado,
-                    hint: const Text("Proveedor"),
-                    items: [
-                      const DropdownMenuItem<String?>(
-                          value: null, child: Text("Todos")),
-                      const DropdownMenuItem<String?>(
-                          value: "Sin proveedor", child: Text("Sin proveedor")),
-                      ...proveedores.map((p) {
-                        return DropdownMenuItem<String?>(
-                          value: p["nombre"],
-                          child: Text(p["nombre"] ?? "-"),
-                        );
-                      }).toList(),
-                    ],
-                    onChanged: (v) {
-                      setState(() => proveedorSeleccionado = v);
-                      debugPrint("Proveedor seleccionado: $v");
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                ElevatedButton(
-                  onPressed: aplicarFiltros,
-                  child: const Text("Filtrar"),
-                ),
-                const SizedBox(width: 8),
-                TextButton(
-                    onPressed: limpiarFiltros,
-                    child: const Text("Limpiar")),
-              ],
-            ),
+                TextButton(onPressed: limpiarFiltros, child: const Text("Limpiar")),
+              ]),
+            ],
             const SizedBox(height: 12),
-            // Información de filtros aplicados
             if (fechaDesde != null || fechaHasta != null || proveedorSeleccionado != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
@@ -595,44 +593,68 @@ class _ComprasPageState extends State<ComprasPage> {
             Expanded(
               child: comprasFiltradas.isEmpty
                   ? const Center(child: Text("No hay compras que mostrar"))
-                  : ListView.builder(
-                itemCount: comprasFiltradas.length,
-                itemBuilder: (context, index) {
-                  final c = comprasFiltradas[index];
-                  final fechaStr = c['fecha']?.toString() ?? '';
-                  final fechaParsed = DateTime.tryParse(fechaStr);
-                  final fechaDisplay = fechaParsed != null
-                      ? _formatearFecha(fechaParsed.toString())
-                      : fechaStr;
-                  return Card(
-                    child: ListTile(
-                      title: Text(
-                          "Compra #${c["id_compra"]} - $fechaDisplay"),
-                      subtitle: Text(
-                          "Proveedor: ${c["proveedor"] ?? "Sin proveedor"}\nTotal: \$${c["total"]}"),
-                      isThreeLine: true,
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                              icon: const Icon(Icons.visibility),
-                              onPressed: () => showCompraDetalle(
-                                  c["id_compra"])),
-                          IconButton(
-                              icon: const Icon(Icons.delete,
-                                  color: Colors.red),
-                              onPressed: () =>
-                                  deleteCompra(c["id_compra"])),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
+                  : mobile
+                      ? _buildMobileList()
+                      : _buildDesktopTable(),
             ),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildMobileList() => ListView.builder(
+    itemCount: comprasFiltradas.length,
+    itemBuilder: (context, index) {
+      final c = comprasFiltradas[index];
+      final fechaParsed = DateTime.tryParse(c['fecha']?.toString() ?? '');
+      final fechaDisplay = fechaParsed != null ? _formatearFecha(fechaParsed.toString()) : (c['fecha']?.toString() ?? '');
+      return Card(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: ListTile(
+          title: Text("Compra #${c["id_compra"]} — $fechaDisplay", style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text("Proveedor: ${c["proveedor"] ?? "Sin proveedor"}\nTotal: \$${c["total"]}"),
+          isThreeLine: true,
+          trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+            IconButton(icon: const Icon(Icons.visibility), onPressed: () => showCompraDetalle(c["id_compra"])),
+            IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => deleteCompra(c["id_compra"])),
+          ]),
+        ),
+      );
+    },
+  );
+
+  Widget _buildDesktopTable() => SizedBox(
+    width: double.infinity,
+    child: SingleChildScrollView(
+      child: DataTable(
+        headingRowColor: WidgetStateProperty.all(Colors.deepPurple.shade50),
+        columnSpacing: 32,
+        dataRowMinHeight: 48,
+        dataRowMaxHeight: 56,
+        columns: const [
+          DataColumn(label: Expanded(child: Text("#", style: TextStyle(fontWeight: FontWeight.bold)))),
+          DataColumn(label: Expanded(child: Text("Fecha", style: TextStyle(fontWeight: FontWeight.bold)))),
+          DataColumn(label: Expanded(child: Text("Proveedor", style: TextStyle(fontWeight: FontWeight.bold)))),
+          DataColumn(label: Expanded(child: Text("Total", style: TextStyle(fontWeight: FontWeight.bold)))),
+          DataColumn(label: Text("Acciones", style: TextStyle(fontWeight: FontWeight.bold))),
+        ],
+        rows: comprasFiltradas.map<DataRow>((c) {
+          final fechaParsed = DateTime.tryParse(c['fecha']?.toString() ?? '');
+          final fechaDisplay = fechaParsed != null ? _formatearFecha(fechaParsed.toString()) : (c['fecha']?.toString() ?? '');
+          return DataRow(cells: [
+            DataCell(Text("#${c["id_compra"]}")),
+            DataCell(Text(fechaDisplay)),
+            DataCell(Text(c["proveedor"] ?? "Sin proveedor")),
+            DataCell(Text("\$${c["total"]}")),
+            DataCell(Row(children: [
+              IconButton(icon: const Icon(Icons.visibility, color: Colors.indigo, size: 20), onPressed: () => showCompraDetalle(c["id_compra"])),
+              IconButton(icon: const Icon(Icons.delete, color: Colors.red, size: 20), onPressed: () => deleteCompra(c["id_compra"])),
+            ])),
+          ]);
+        }).toList(),
+      ),
+    ),
+  );
 }

@@ -173,17 +173,20 @@ class _ProveedoresPageState extends State<ProveedoresPage> {
     },
   );
 
-  Widget _buildDesktopTable() => SingleChildScrollView(
+  Widget _buildDesktopTable() => SizedBox(
+    width: double.infinity,
     child: SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
       child: DataTable(
         headingRowColor: WidgetStateProperty.all(Colors.deepPurple.shade50),
+        columnSpacing: 32,
+        dataRowMinHeight: 48,
+        dataRowMaxHeight: 56,
         columns: const [
-          DataColumn(label: Text("Nombre", style: TextStyle(fontWeight: FontWeight.bold))),
-          DataColumn(label: Text("RUT", style: TextStyle(fontWeight: FontWeight.bold))),
-          DataColumn(label: Text("Teléfono", style: TextStyle(fontWeight: FontWeight.bold))),
-          DataColumn(label: Text("Dirección", style: TextStyle(fontWeight: FontWeight.bold))),
-          DataColumn(label: Text("Comuna", style: TextStyle(fontWeight: FontWeight.bold))),
+          DataColumn(label: Expanded(child: Text("Nombre", style: TextStyle(fontWeight: FontWeight.bold)))),
+          DataColumn(label: Expanded(child: Text("RUT", style: TextStyle(fontWeight: FontWeight.bold)))),
+          DataColumn(label: Expanded(child: Text("Teléfono", style: TextStyle(fontWeight: FontWeight.bold)))),
+          DataColumn(label: Expanded(child: Text("Dirección", style: TextStyle(fontWeight: FontWeight.bold)))),
+          DataColumn(label: Expanded(child: Text("Comuna", style: TextStyle(fontWeight: FontWeight.bold)))),
           DataColumn(label: Text("Acciones", style: TextStyle(fontWeight: FontWeight.bold))),
         ],
         rows: proveedoresFiltrados.map<DataRow>((p) => DataRow(cells: [
