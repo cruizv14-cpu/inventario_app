@@ -351,18 +351,91 @@ class _DashboardPageState extends State<DashboardPage> {
     return Column(
       children: [
         Expanded(
-          child: PageView.builder(
-            controller: _graficosController,
-            itemCount: _graficosDisponibles.length,
-            onPageChanged: (index) => setState(() => _currentGraficoIndex = index),
-            itemBuilder: (context, index) {
-              final grafico = _graficosDisponibles[index];
-              return _buildGraficoCard(grafico, index == _currentGraficoIndex);
-            },
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              PageView.builder(
+                controller: _graficosController,
+                itemCount: _graficosDisponibles.length,
+                onPageChanged: (index) => setState(() => _currentGraficoIndex = index),
+                itemBuilder: (context, index) {
+                  final grafico = _graficosDisponibles[index];
+                  // Le damos un poco de padding horizontal para que las flechas no tapen el gráfico
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: _buildGraficoCard(grafico, index == _currentGraficoIndex),
+                  );
+                },
+              ),
+              // Flecha Izquierda
+              Positioned(
+                left: 0,
+                child: _buildFlechaNavegacion(esIzquierda: true),
+              ),
+              // Flecha Derecha
+              Positioned(
+                right: 0,
+                child: _buildFlechaNavegacion(esIzquierda: false),
+              ),
+            ],
           ),
         ),
+        const SizedBox(height: 8),
         _buildCarouselIndicators(_graficosDisponibles.length, _currentGraficoIndex),
       ],
+    );
+  }
+
+  Widget _buildFlechaNavegacion({required bool esIzquierda}) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 2),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.9),
+        shape: BoxShape.circle,
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          )
+        ],
+      ),
+      child: IconButton(
+        icon: Icon(
+          esIzquierda ? Icons.arrow_back_ios_new : Icons.arrow_forward_ios,
+          color: Colors.deepPurple,
+          size: 18,
+        ),
+        onPressed: () {
+          if (esIzquierda) {
+            if (_currentGraficoIndex > 0) {
+              _graficosController.previousPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            } else {
+              _graficosController.animateToPage(
+                _graficosDisponibles.length - 1,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            }
+          } else {
+            if (_currentGraficoIndex < _graficosDisponibles.length - 1) {
+              _graficosController.nextPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            } else {
+              _graficosController.animateToPage(
+                0,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            }
+          }
+        },
+      ),
     );
   }
 
