@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import '../widgets/app_header.dart';
 import '../utils/comunas.dart';
 import '../utils/constants.dart';
+import '../utils/responsive.dart';
 
 class ClientesPage extends StatefulWidget {
   const ClientesPage({super.key});
@@ -19,14 +20,12 @@ class _ClientesPageState extends State<ClientesPage> {
   bool loading = true;
 
   final String apiUrl = "$apiBaseUrl/clientes";
-
-  final TextEditingController nombreCtrl = TextEditingController();
-  final TextEditingController telefonoCtrl = TextEditingController();
-  final TextEditingController direccionCtrl = TextEditingController();
-  final TextEditingController rutCtrl = TextEditingController();
-
+  final nombreCtrl = TextEditingController();
+  final telefonoCtrl = TextEditingController();
+  final direccionCtrl = TextEditingController();
+  final rutCtrl = TextEditingController();
+  final buscarCtrl = TextEditingController();
   String? comunaSeleccionada;
-  final TextEditingController buscarCtrl = TextEditingController();
 
   @override
   void initState() {
@@ -40,10 +39,7 @@ class _ClientesPageState extends State<ClientesPage> {
       final resp = await http.get(Uri.parse(apiUrl));
       if (resp.statusCode == 200) {
         final data = json.decode(resp.body);
-        setState(() {
-          clientes = data;
-          clientesFiltrados = data;
-        });
+        setState(() { clientes = data; clientesFiltrados = data; });
       }
     } catch (e) {
       debugPrint("Error al cargar clientes: $e");
@@ -53,205 +49,162 @@ class _ClientesPageState extends State<ClientesPage> {
   }
 
   void filtrarClientes(String query) {
-    final texto = query.toLowerCase();
+    final t = query.toLowerCase();
     setState(() {
-      clientesFiltrados = clientes.where((c) {
-        final nombre = (c["nombre"] ?? "").toLowerCase();
-        final rut = (c["rut"] ?? "").toLowerCase();
-        final comuna = (c["comuna"] ?? "").toLowerCase();
-        return nombre.contains(texto) || rut.contains(texto) || comuna.contains(texto);
-      }).toList();
+      clientesFiltrados = clientes.where((c) =>
+        (c["nombre"] ?? "").toLowerCase().contains(t) ||
+        (c["rut"] ?? "").toLowerCase().contains(t) ||
+        (c["comuna"] ?? "").toLowerCase().contains(t)).toList();
     });
   }
 
   Future<void> createCliente() async {
-    final data = {
-      "nombre": nombreCtrl.text,
-      "telefono": telefonoCtrl.text,
-      "direccion": direccionCtrl.text,
-      "rut": rutCtrl.text,
-      "comuna": comunaSeleccionada ?? "Fuera de Santiago",
-    };
-    try {
-      final resp = await http.post(Uri.parse(apiUrl),
-          headers: {"Content-Type": "application/json"},
-          body: json.encode(data));
-      if (resp.statusCode == 201) {
-        await fetchClientes();
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      debugPrint("Error al crear cliente: $e");
-    }
+    final data = {"nombre": nombreCtrl.text, "telefono": telefonoCtrl.text,
+      "direccion": direccionCtrl.text, "rut": rutCtrl.text,
+      "comuna": comunaSeleccionada ?? "Fuera de Santiago"};
+    final resp = await http.post(Uri.parse(apiUrl),
+      headers: {"Content-Type": "application/json"}, body: json.encode(data));
+    if (resp.statusCode == 201) { await fetchClientes(); if (mounted) Navigator.pop(context); }
   }
 
   Future<void> updateCliente(int id) async {
-    final data = {
-      "nombre": nombreCtrl.text,
-      "telefono": telefonoCtrl.text,
-      "direccion": direccionCtrl.text,
-      "rut": rutCtrl.text,
-      "comuna": comunaSeleccionada ?? "Fuera de Santiago",
-    };
-    try {
-      final resp = await http.put(Uri.parse("$apiUrl/$id"),
-          headers: {"Content-Type": "application/json"},
-          body: json.encode(data));
-      if (resp.statusCode == 200) {
-        await fetchClientes();
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      debugPrint("Error al actualizar cliente: $e");
-    }
+    final data = {"nombre": nombreCtrl.text, "telefono": telefonoCtrl.text,
+      "direccion": direccionCtrl.text, "rut": rutCtrl.text,
+      "comuna": comunaSeleccionada ?? "Fuera de Santiago"};
+    final resp = await http.put(Uri.parse("$apiUrl/$id"),
+      headers: {"Content-Type": "application/json"}, body: json.encode(data));
+    if (resp.statusCode == 200) { await fetchClientes(); if (mounted) Navigator.pop(context); }
   }
 
   Future<void> deleteCliente(int id) async {
-    try {
-      final resp = await http.delete(Uri.parse("$apiUrl/$id"));
-      if (resp.statusCode == 200) {
-        fetchClientes();
-      }
-    } catch (e) {
-      debugPrint("Error al eliminar cliente: $e");
+    final resp = await http.delete(Uri.parse("$apiUrl/$id"));
+    if (resp.statusCode == 200) fetchClientes();
+  }
+
+  void openFormDialog({Map? cliente}) {
+    if (cliente != null) {
+      nombreCtrl.text = cliente["nombre"] ?? ""; telefonoCtrl.text = cliente["telefono"] ?? "";
+      direccionCtrl.text = cliente["direccion"] ?? ""; rutCtrl.text = cliente["rut"] ?? "";
+      comunaSeleccionada = cliente["comuna"];
+    } else {
+      nombreCtrl.clear(); telefonoCtrl.clear(); direccionCtrl.clear(); rutCtrl.clear();
+      comunaSeleccionada = null;
     }
-  }
-
-  void openCreateDialog() {
-    nombreCtrl.clear();
-    telefonoCtrl.clear();
-    direccionCtrl.clear();
-    rutCtrl.clear();
-    comunaSeleccionada = null;
-
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Agregar Cliente"),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: nombreCtrl, decoration: const InputDecoration(labelText: "Nombre")),
-              TextField(controller: telefonoCtrl, decoration: const InputDecoration(labelText: "Teléfono")),
-              TextField(controller: direccionCtrl, decoration: const InputDecoration(labelText: "Dirección")),
-              TextField(controller: rutCtrl, decoration: const InputDecoration(labelText: "RUT")),
-              DropdownButtonFormField<String>(
-                value: comunaSeleccionada,
-                items: comunasRM.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-                onChanged: (v) => setState(() => comunaSeleccionada = v),
-                decoration: const InputDecoration(labelText: "Comuna"),
-              ),
-            ],
-          ),
-        ),
+      builder: (_) => StatefulBuilder(builder: (ctx, setS) => AlertDialog(
+        title: Text(cliente != null ? "Editar Cliente" : "Agregar Cliente"),
+        content: SizedBox(width: 400, child: SingleChildScrollView(child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: nombreCtrl, decoration: const InputDecoration(labelText: "Nombre", border: OutlineInputBorder())),
+            const SizedBox(height: 8),
+            Row(children: [
+              Expanded(child: TextField(controller: rutCtrl, decoration: const InputDecoration(labelText: "RUT", border: OutlineInputBorder()))),
+              const SizedBox(width: 8),
+              Expanded(child: TextField(controller: telefonoCtrl, decoration: const InputDecoration(labelText: "Teléfono", border: OutlineInputBorder()))),
+            ]),
+            const SizedBox(height: 8),
+            TextField(controller: direccionCtrl, decoration: const InputDecoration(labelText: "Dirección", border: OutlineInputBorder())),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              value: comunaSeleccionada,
+              decoration: const InputDecoration(labelText: "Comuna", border: OutlineInputBorder()),
+              items: comunasRM.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+              onChanged: (v) => setS(() => comunaSeleccionada = v),
+            ),
+          ],
+        ))),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
-          ElevatedButton(onPressed: createCliente, child: const Text("Guardar")),
-        ],
-      ),
-    );
-  }
-
-  void openEditDialog(Map cliente) {
-    nombreCtrl.text = cliente["nombre"] ?? "";
-    telefonoCtrl.text = cliente["telefono"] ?? "";
-    direccionCtrl.text = cliente["direccion"] ?? "";
-    rutCtrl.text = cliente["rut"] ?? "";
-    comunaSeleccionada = cliente["comuna"];
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Editar Cliente"),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: nombreCtrl, decoration: const InputDecoration(labelText: "Nombre")),
-              TextField(controller: telefonoCtrl, decoration: const InputDecoration(labelText: "Teléfono")),
-              TextField(controller: direccionCtrl, decoration: const InputDecoration(labelText: "Dirección")),
-              TextField(controller: rutCtrl, decoration: const InputDecoration(labelText: "RUT")),
-              DropdownButtonFormField<String>(
-                value: comunaSeleccionada,
-                items: comunasRM.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-                onChanged: (v) => setState(() => comunaSeleccionada = v),
-                decoration: const InputDecoration(labelText: "Comuna"),
-              ),
-            ],
+          ElevatedButton(
+            onPressed: cliente != null ? () => updateCliente(cliente["id_cliente"]) : createCliente,
+            child: Text(cliente != null ? "Actualizar" : "Guardar"),
           ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
-          ElevatedButton(onPressed: () => updateCliente(cliente["id_cliente"]), child: const Text("Actualizar")),
         ],
-      ),
+      )),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final mobile = isMobile(context);
     return Scaffold(
       appBar: AppHeader(parentContext: context),
+      drawer: mobile ? AppDrawer(parentContext: context) : null,
       floatingActionButton: FloatingActionButton(
-        onPressed: openCreateDialog,
-        child: const Icon(Icons.add),
+        onPressed: () => openFormDialog(),
+        backgroundColor: Colors.deepPurple,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // 🔍 Barra de búsqueda
-            TextField(
-              controller: buscarCtrl,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search),
-                hintText: "Buscar por nombre o RUT...",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              onChanged: filtrarClientes,
-            ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : clientesFiltrados.isEmpty
-                  ? const Center(child: Text("No hay clientes 😕"))
-                  : ListView.builder(
-                itemCount: clientesFiltrados.length,
-                itemBuilder: (context, index) {
-                  final cliente = clientesFiltrados[index];
-                  return Card(
-                    child: ListTile(
-                      title: Text(cliente["nombre"] ?? ""),
-                      subtitle: Text(
-                        "RUT: ${cliente["rut"] ?? "-"}\n"
-                            "Comuna: ${cliente["comuna"] ?? "-"}\n"
-                            "Tel: ${cliente["telefono"] ?? "-"}\n"
-                            "Dirección: ${cliente["direccion"] ?? "-"}",
-                      ),
-                      isThreeLine: true,
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () => openEditDialog(cliente),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => deleteCliente(cliente["id_cliente"]),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+        padding: EdgeInsets.all(mobile ? 10 : 16),
+        child: Column(children: [
+          TextField(
+            controller: buscarCtrl,
+            decoration: InputDecoration(prefixIcon: const Icon(Icons.search),
+              hintText: "Buscar por nombre, RUT o comuna...",
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+            onChanged: filtrarClientes,
+          ),
+          const SizedBox(height: 10),
+          Expanded(
+            child: loading
+              ? const Center(child: CircularProgressIndicator())
+              : clientesFiltrados.isEmpty
+                ? const Center(child: Text("No hay clientes 😕", style: TextStyle(fontSize: 16)))
+                : mobile ? _buildMobileList() : _buildDesktopTable(),
+          ),
+        ]),
       ),
     );
   }
+
+  Widget _buildMobileList() => ListView.builder(
+    itemCount: clientesFiltrados.length,
+    itemBuilder: (context, i) {
+      final c = clientesFiltrados[i];
+      return Card(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: ListTile(
+          title: Text(c["nombre"] ?? "", style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text("RUT: ${c["rut"] ?? "-"}  |  Tel: ${c["telefono"] ?? "-"}\nComuna: ${c["comuna"] ?? "-"}"),
+          isThreeLine: true,
+          trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+            IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: () => openFormDialog(cliente: c)),
+            IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => deleteCliente(c["id_cliente"])),
+          ]),
+        ),
+      );
+    },
+  );
+
+  Widget _buildDesktopTable() => SingleChildScrollView(
+    child: SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        headingRowColor: WidgetStateProperty.all(Colors.deepPurple.shade50),
+        columns: const [
+          DataColumn(label: Text("Nombre", style: TextStyle(fontWeight: FontWeight.bold))),
+          DataColumn(label: Text("RUT", style: TextStyle(fontWeight: FontWeight.bold))),
+          DataColumn(label: Text("Teléfono", style: TextStyle(fontWeight: FontWeight.bold))),
+          DataColumn(label: Text("Dirección", style: TextStyle(fontWeight: FontWeight.bold))),
+          DataColumn(label: Text("Comuna", style: TextStyle(fontWeight: FontWeight.bold))),
+          DataColumn(label: Text("Acciones", style: TextStyle(fontWeight: FontWeight.bold))),
+        ],
+        rows: clientesFiltrados.map<DataRow>((c) => DataRow(cells: [
+          DataCell(Text(c["nombre"] ?? "")),
+          DataCell(Text(c["rut"] ?? "-")),
+          DataCell(Text(c["telefono"] ?? "-")),
+          DataCell(Text(c["direccion"] ?? "-")),
+          DataCell(Text(c["comuna"] ?? "-")),
+          DataCell(Row(children: [
+            IconButton(icon: const Icon(Icons.edit, color: Colors.blue, size: 20), onPressed: () => openFormDialog(cliente: c)),
+            IconButton(icon: const Icon(Icons.delete, color: Colors.red, size: 20), onPressed: () => deleteCliente(c["id_cliente"])),
+          ])),
+        ])).toList(),
+      ),
+    ),
+  );
 }

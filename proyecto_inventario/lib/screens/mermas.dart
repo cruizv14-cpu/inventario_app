@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import '../widgets/app_header.dart';
 import '../utils/constants.dart';
+import '../utils/responsive.dart';
 
 class MermasPage extends StatefulWidget {
   const MermasPage({super.key});
@@ -308,12 +309,19 @@ class _MermasPageState extends State<MermasPage> {
 
   @override
   Widget build(BuildContext context) {
+    final mobile = isMobile(context);
     return Scaffold(
       appBar: AppHeader(parentContext: context),
+      drawer: mobile ? AppDrawer(parentContext: context) : null,
+      floatingActionButton: FloatingActionButton(
+        onPressed: openCreateDialog,
+        backgroundColor: Colors.deepPurple,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(mobile ? 10 : 12),
         child: Column(
           children: [
             // Filtros por fecha
@@ -353,7 +361,6 @@ class _MermasPageState extends State<MermasPage> {
               ],
             ),
             const SizedBox(height: 12),
-            // Información de filtros aplicados
             if (fechaDesde != null || fechaHasta != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
@@ -365,36 +372,64 @@ class _MermasPageState extends State<MermasPage> {
             Expanded(
               child: mermasFiltradas.isEmpty
                   ? const Center(child: Text("No hay mermas registradas"))
-                  : ListView.builder(
-                itemCount: mermasFiltradas.length,
-                itemBuilder: (context, index) {
-                  final m = mermasFiltradas[index];
-                  final fechaStr = m['fecha']?.toString() ?? '';
-                  final fechaParsed = DateTime.tryParse(fechaStr);
-                  final fechaDisplay = fechaParsed != null
-                      ? _formatearFecha(fechaParsed.toString())
-                      : fechaStr;
-
-                  return Card(
-                    child: ListTile(
-                      title: Text("${m["producto"]} — ${m["motivo"]}"),
-                      subtitle: Text(
-                          "Cantidad: ${m["cantidad"]}\nFecha: $fechaDisplay\nObs: ${m["observacion"] ?? "-"}"),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => eliminarMerma(m["id_merma"]),
-                      ),
-                    ),
-                  );
-                },
-              ),
+                  : mobile
+                      ? _buildMobileList()
+                      : _buildDesktopTable(),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: openCreateDialog,
-        child: const Icon(Icons.add),
+    );
+  }
+
+  Widget _buildMobileList() {
+    return ListView.builder(
+      itemCount: mermasFiltradas.length,
+      itemBuilder: (context, index) {
+        final m = mermasFiltradas[index];
+        final fechaParsed = DateTime.tryParse(m['fecha']?.toString() ?? '');
+        final fechaDisplay = fechaParsed != null ? _formatearFecha(fechaParsed.toString()) : (m['fecha']?.toString() ?? '');
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 6),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: ListTile(
+            title: Text("${m['producto']} — ${m['motivo']}", style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text("Cantidad: ${m['cantidad']}  |  Fecha: $fechaDisplay\nObs: ${m['observacion'] ?? '-'}"),
+            isThreeLine: true,
+            trailing: IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => eliminarMerma(m["id_merma"])),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDesktopTable() {
+    return SingleChildScrollView(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          headingRowColor: WidgetStateProperty.all(Colors.deepPurple.shade50),
+          columns: const [
+            DataColumn(label: Text("Producto", style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text("Cantidad", style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text("Motivo", style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text("Observación", style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text("Fecha", style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text("Acción", style: TextStyle(fontWeight: FontWeight.bold))),
+          ],
+          rows: mermasFiltradas.map<DataRow>((m) {
+            final fechaParsed = DateTime.tryParse(m['fecha']?.toString() ?? '');
+            final fechaDisplay = fechaParsed != null ? _formatearFecha(fechaParsed.toString()) : (m['fecha']?.toString() ?? '');
+            return DataRow(cells: [
+              DataCell(Text(m["producto"] ?? "")),
+              DataCell(Text("${m['cantidad']}")),
+              DataCell(Text(m["motivo"] ?? "")),
+              DataCell(Text(m["observacion"] ?? "-")),
+              DataCell(Text(fechaDisplay)),
+              DataCell(IconButton(icon: const Icon(Icons.delete, color: Colors.red, size: 20), onPressed: () => eliminarMerma(m["id_merma"]))),
+            ]);
+          }).toList(),
+        ),
       ),
     );
   }

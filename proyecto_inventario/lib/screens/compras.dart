@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import '../widgets/app_header.dart';
 import '../utils/constants.dart';
+import '../utils/responsive.dart';
 
 class ComprasPage extends StatefulWidget {
   const ComprasPage({super.key});
@@ -507,11 +508,14 @@ class _ComprasPageState extends State<ComprasPage> {
 
   @override
   Widget build(BuildContext context) {
+    final mobile = isMobile(context);
     return Scaffold(
       appBar: AppHeader(parentContext: context),
+      drawer: mobile ? AppDrawer(parentContext: context) : null,
       floatingActionButton: FloatingActionButton(
         onPressed: openCreateDialog,
-        child: const Icon(Icons.add),
+        backgroundColor: Colors.deepPurple,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())

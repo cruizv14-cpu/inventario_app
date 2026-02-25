@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../widgets/app_header.dart';
 import '../utils/constants.dart';
+import '../utils/responsive.dart';
 
 class ProductosPage extends StatefulWidget {
   const ProductosPage({super.key});
@@ -76,7 +77,7 @@ class _ProductosPageState extends State<ProductosPage> {
           body: json.encode(data));
       if (resp.statusCode == 200 || resp.statusCode == 201) {
         await fetchProductos();
-        Navigator.pop(context);
+        if (mounted) Navigator.pop(context);
       }
     } catch (e) {
       debugPrint("Error al crear producto: $e");
@@ -98,7 +99,7 @@ class _ProductosPageState extends State<ProductosPage> {
           body: json.encode(data));
       if (resp.statusCode == 200) {
         await fetchProductos();
-        Navigator.pop(context);
+        if (mounted) Navigator.pop(context);
       }
     } catch (e) {
       debugPrint("Error al actualizar producto: $e");
@@ -108,77 +109,62 @@ class _ProductosPageState extends State<ProductosPage> {
   Future<void> deleteProducto(int id) async {
     try {
       final resp = await http.delete(Uri.parse("$apiUrl/$id"));
-      if (resp.statusCode == 200) {
-        fetchProductos();
-      }
+      if (resp.statusCode == 200) fetchProductos();
     } catch (e) {
       debugPrint("Error al eliminar producto: $e");
     }
   }
 
-  void openCreateDialog() {
-    nombreCtrl.clear();
-    descripcionCtrl.clear();
-    precioCompraCtrl.clear();
-    precioVentaCtrl.clear();
-    stockCtrl.clear();
-    stockMinimoCtrl.clear();
+  void openFormDialog({Map? producto}) {
+    if (producto != null) {
+      nombreCtrl.text = producto["nombre"] ?? "";
+      descripcionCtrl.text = producto["descripcion"] ?? "";
+      precioCompraCtrl.text = producto["precio_compra"].toString();
+      precioVentaCtrl.text = producto["precio_venta"].toString();
+      stockCtrl.text = producto["stock"].toString();
+      stockMinimoCtrl.text = producto["stock_minimo"].toString();
+    } else {
+      nombreCtrl.clear(); descripcionCtrl.clear();
+      precioCompraCtrl.clear(); precioVentaCtrl.clear();
+      stockCtrl.clear(); stockMinimoCtrl.clear();
+    }
 
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Agregar Producto"),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: nombreCtrl, decoration: const InputDecoration(labelText: "Nombre")),
-              TextField(controller: descripcionCtrl, decoration: const InputDecoration(labelText: "Descripción")),
-              TextField(controller: precioCompraCtrl, decoration: const InputDecoration(labelText: "Precio de compra"), keyboardType: TextInputType.number),
-              TextField(controller: precioVentaCtrl, decoration: const InputDecoration(labelText: "Precio de venta"), keyboardType: TextInputType.number),
-              TextField(controller: stockCtrl, decoration: const InputDecoration(labelText: "Cantidad"), keyboardType: TextInputType.number),
-              TextField(controller: stockMinimoCtrl, decoration: const InputDecoration(labelText: "Stock mínimo"), keyboardType: TextInputType.number),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
-          ElevatedButton(onPressed: createProducto, child: const Text("Guardar")),
-        ],
-      ),
-    );
-  }
-
-  void openEditDialog(Map producto) {
-    nombreCtrl.text = producto["nombre"] ?? "";
-    descripcionCtrl.text = producto["descripcion"] ?? "";
-    precioCompraCtrl.text = producto["precio_compra"].toString();
-    precioVentaCtrl.text = producto["precio_venta"].toString();
-    stockCtrl.text = producto["stock"].toString();
-    stockMinimoCtrl.text = producto["stock_minimo"].toString();
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Editar Producto"),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: nombreCtrl, decoration: const InputDecoration(labelText: "Nombre")),
-              TextField(controller: descripcionCtrl, decoration: const InputDecoration(labelText: "Descripción")),
-              TextField(controller: precioCompraCtrl, decoration: const InputDecoration(labelText: "Precio de compra"), keyboardType: TextInputType.number),
-              TextField(controller: precioVentaCtrl, decoration: const InputDecoration(labelText: "Precio de venta"), keyboardType: TextInputType.number),
-              TextField(controller: stockCtrl, decoration: const InputDecoration(labelText: "Cantidad"), keyboardType: TextInputType.number),
-              TextField(controller: stockMinimoCtrl, decoration: const InputDecoration(labelText: "Stock mínimo"), keyboardType: TextInputType.number),
-            ],
+        title: Text(producto != null ? "Editar Producto" : "Agregar Producto"),
+        content: SizedBox(
+          width: 400,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(controller: nombreCtrl, decoration: const InputDecoration(labelText: "Nombre", border: OutlineInputBorder())),
+                const SizedBox(height: 8),
+                TextField(controller: descripcionCtrl, decoration: const InputDecoration(labelText: "Descripción", border: OutlineInputBorder())),
+                const SizedBox(height: 8),
+                Row(children: [
+                  Expanded(child: TextField(controller: precioCompraCtrl, decoration: const InputDecoration(labelText: "P. Compra", border: OutlineInputBorder()), keyboardType: TextInputType.number)),
+                  const SizedBox(width: 8),
+                  Expanded(child: TextField(controller: precioVentaCtrl, decoration: const InputDecoration(labelText: "P. Venta", border: OutlineInputBorder()), keyboardType: TextInputType.number)),
+                ]),
+                const SizedBox(height: 8),
+                Row(children: [
+                  Expanded(child: TextField(controller: stockCtrl, decoration: const InputDecoration(labelText: "Stock", border: OutlineInputBorder()), keyboardType: TextInputType.number)),
+                  const SizedBox(width: 8),
+                  Expanded(child: TextField(controller: stockMinimoCtrl, decoration: const InputDecoration(labelText: "Stock Mínimo", border: OutlineInputBorder()), keyboardType: TextInputType.number)),
+                ]),
+              ],
+            ),
           ),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
           ElevatedButton(
-            onPressed: () => updateProducto(producto["id_producto"]),
-            child: const Text("Actualizar"),
+            onPressed: producto != null
+                ? () => updateProducto(producto["id_producto"])
+                : createProducto,
+            child: Text(producto != null ? "Actualizar" : "Guardar"),
           ),
         ],
       ),
@@ -187,17 +173,19 @@ class _ProductosPageState extends State<ProductosPage> {
 
   @override
   Widget build(BuildContext context) {
+    final mobile = isMobile(context);
     return Scaffold(
       appBar: AppHeader(parentContext: context),
+      drawer: mobile ? AppDrawer(parentContext: context) : null,
       floatingActionButton: FloatingActionButton(
-        onPressed: openCreateDialog,
-        child: const Icon(Icons.add),
+        onPressed: () => openFormDialog(),
+        backgroundColor: Colors.deepPurple,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(mobile ? 10 : 16),
         child: Column(
           children: [
-            // 🔍 Barra de búsqueda
             TextField(
               controller: buscarCtrl,
               decoration: InputDecoration(
@@ -212,40 +200,74 @@ class _ProductosPageState extends State<ProductosPage> {
               child: loading
                   ? const Center(child: CircularProgressIndicator())
                   : productosFiltrados.isEmpty
-                  ? const Center(child: Text("No hay productos 😕"))
-                  : ListView.builder(
-                itemCount: productosFiltrados.length,
-                itemBuilder: (context, index) {
-                  final p = productosFiltrados[index];
-                  return Card(
-                    child: ListTile(
-                      title: Text(p["nombre"] ?? ""),
-                      subtitle: Text(
-                        "Descripción: ${p["descripcion"] ?? "-"}\n"
-                            "Precio Compra: \$${p["precio_compra"]}\n"
-                            "Precio Venta: \$${p["precio_venta"]}\n"
-                            "Cantidad: ${p["stock"]} (mínimo ${p["stock_minimo"]})",
-                      ),
-                      isThreeLine: true,
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () => openEditDialog(p),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => deleteProducto(p["id_producto"]),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
+                      ? const Center(child: Text("No hay productos 😕", style: TextStyle(fontSize: 16)))
+                      : mobile
+                          ? _buildMobileList()
+                          : _buildDesktopTable(),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileList() {
+    return ListView.builder(
+      itemCount: productosFiltrados.length,
+      itemBuilder: (context, index) {
+        final p = productosFiltrados[index];
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 6),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: ListTile(
+            title: Text(p["nombre"] ?? "", style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(
+              "PC: \$${p["precio_compra"]}  PV: \$${p["precio_venta"]}\n"
+              "Stock: ${p["stock"]} (mín. ${p["stock_minimo"]})",
+            ),
+            isThreeLine: true,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: () => openFormDialog(producto: p)),
+                IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => deleteProducto(p["id_producto"])),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDesktopTable() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.vertical,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          headingRowColor: WidgetStateProperty.all(Colors.deepPurple.shade50),
+          columnSpacing: 24,
+          columns: const [
+            DataColumn(label: Text("Nombre", style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text("Descripción", style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text("P. Compra", style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text("P. Venta", style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text("Stock", style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text("Stock Min.", style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text("Acciones", style: TextStyle(fontWeight: FontWeight.bold))),
+          ],
+          rows: productosFiltrados.map<DataRow>((p) => DataRow(cells: [
+            DataCell(Text(p["nombre"] ?? "")),
+            DataCell(Text(p["descripcion"] ?? "-")),
+            DataCell(Text("\$${p["precio_compra"]}")),
+            DataCell(Text("\$${p["precio_venta"]}")),
+            DataCell(Text("${p["stock"]}")),
+            DataCell(Text("${p["stock_minimo"]}")),
+            DataCell(Row(children: [
+              IconButton(icon: const Icon(Icons.edit, color: Colors.blue, size: 20), onPressed: () => openFormDialog(producto: p)),
+              IconButton(icon: const Icon(Icons.delete, color: Colors.red, size: 20), onPressed: () => deleteProducto(p["id_producto"])),
+            ])),
+          ])).toList(),
         ),
       ),
     );

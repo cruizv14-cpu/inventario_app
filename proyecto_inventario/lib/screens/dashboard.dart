@@ -7,6 +7,7 @@ import '../widgets/app_header.dart';
 import 'package:intl/intl.dart';
 import '../services/report_service.dart';
 import '../utils/constants.dart';
+import '../utils/responsive.dart';
 
 
 class DashboardPage extends StatefulWidget {
@@ -813,51 +814,78 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppHeader(parentContext: context),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // PRIMERA FILA: KPIs y Gráficos
-            Expanded(
-              flex: 3,
-              child: Row(
-                children: [
-                  // 🟣 Carrusel de KPIs
-                  Expanded(
-                    flex: 1,
-                    child: _buildKpiCarousel(),
+      drawer: isMobile(context)
+          ? AppDrawer(parentContext: context)
+          : null,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final mobile = constraints.maxWidth < 600;
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(mobile ? 10 : 16),
+            child: Column(
+              children: [
+                // PRIMERA FILA: KPIs y Gráficos
+                mobile
+                    // En móvil los carruseles se apilan verticalmente
+                    ? Column(
+                        children: [
+                          SizedBox(
+                            height: 200,
+                            child: _buildKpiCarousel(),
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            height: 320,
+                            child: _buildGraficosCarousel(),
+                          ),
+                        ],
+                      )
+                    // En desktop/tablet quedan lado a lado
+                    : SizedBox(
+                        height: constraints.maxHeight * 0.55,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: _buildKpiCarousel(),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              flex: 2,
+                              child: _buildGraficosCarousel(),
+                            ),
+                          ],
+                        ),
+                      ),
+                const SizedBox(height: 16),
+                // 🔴 Alerta de Stock Bajo
+                _buildStockBajoAlert(),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.picture_as_pdf),
+                    label: const Text("Descargar Reporte PDF de Inventario"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: mobile ? 12 : 20,
+                        vertical: 12,
+                      ),
+                      textStyle: TextStyle(fontSize: mobile ? 14 : 16),
+                    ),
+                    onPressed: () async {
+                      final reportService = ReportService();
+                      await reportService.downloadInventoryReport();
+                    },
                   ),
-                  const SizedBox(width: 16),
-                  // 📊 Carrusel de Gráficos
-                  Expanded(
-                    flex: 2,
-                    child: _buildGraficosCarousel(),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 16),
+              ],
             ),
-            const SizedBox(height: 16),
-            // 🔴 Alerta de Stock Bajo
-            _buildStockBajoAlert(),
-            const SizedBox(height: 16),
-
-            ElevatedButton.icon(
-              icon: const Icon(Icons.picture_as_pdf),
-              label: const Text("Descargar Reporte PDF de Inventario"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                textStyle: const TextStyle(fontSize: 16),
-              ),
-              onPressed: () async {
-                final reportService = ReportService();
-                await reportService.downloadInventoryReport();
-              },
-            ),
-
-          ],
-        ),
+          );
+        },
       ),
     );
   }
