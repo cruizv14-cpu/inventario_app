@@ -510,8 +510,9 @@ class _VentasPageState extends State<VentasPage> {
                 ],
               ),
             ),
-            actions: [
-              TextButton(
+          ),
+          actions: [
+            TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: const Text("Cancelar")),
               ElevatedButton(

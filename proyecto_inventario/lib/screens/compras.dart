@@ -488,9 +488,14 @@ class _ComprasPageState extends State<ComprasPage> {
                 ],
               ),
             ),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Cancelar")),
+            ElevatedButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
                     if (items.any((i) => i["product_id"] == null)) {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                           content:
