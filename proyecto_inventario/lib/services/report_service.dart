@@ -3,8 +3,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../utils/constants.dart';
 
-// PARA WEB
-import 'dart:html' as html;
+// Importación Condicional para Flutter Web
+import 'web_download_stub.dart'
+    if (dart.library.html) 'web_download_web.dart'
+    if (dart.library.io) 'web_download_io.dart';
 
 // PARA MÓVIL / ESCRITORIO
 import 'package:path_provider/path_provider.dart';
@@ -26,14 +28,7 @@ class ReportService {
 
       if (kIsWeb) {
         // 🌐 DESCARGA PARA FLUTTER WEB
-        final blob = html.Blob([pdfBytes], 'application/pdf');
-        final url = html.Url.createObjectUrlFromBlob(blob);
-
-        final anchor = html.AnchorElement(href: url)
-          ..download = "reporte_inventario.pdf"
-          ..click();
-
-        html.Url.revokeObjectUrl(url);
+        downloadFileWeb(pdfBytes, 'reporte_inventario.pdf');
         return;
       }
 
