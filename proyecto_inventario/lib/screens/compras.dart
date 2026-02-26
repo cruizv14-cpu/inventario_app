@@ -331,6 +331,9 @@ class _ComprasPageState extends State<ComprasPage> {
     List<Map<String, dynamic>> items = [
       {"product_id": null, "quantity": 1, "unit_price": 0.0}
     ];
+    List<TextEditingController> qtyControllers = [
+      TextEditingController(text: "1")
+    ];
     int? selectedProveedorLocal;
 
     showDialog(
@@ -338,12 +341,18 @@ class _ComprasPageState extends State<ComprasPage> {
       builder: (BuildContext dialogContext) {
         return StatefulBuilder(builder: (contextSB, setStateSB) {
           void addRow() {
-            setStateSB(() => items.add(
-                {"product_id": null, "quantity": 1, "unit_price": 0.0}));
+            setStateSB(() {
+              items.add({"product_id": null, "quantity": 1, "unit_price": 0.0});
+              qtyControllers.add(TextEditingController(text: "1"));
+            });
           }
 
           void removeRow(int idx) {
-            setStateSB(() => items.removeAt(idx));
+            setStateSB(() {
+              items.removeAt(idx);
+              qtyControllers[idx].dispose();
+              qtyControllers.removeAt(idx);
+            });
           }
 
           final _formKey = GlobalKey<FormState>();
@@ -446,7 +455,7 @@ class _ComprasPageState extends State<ComprasPage> {
                         Expanded(
                           flex: 2,
                           child: TextFormField(
-                            initialValue: item["quantity"].toString(),
+                            controller: qtyControllers[idx],
                             decoration:
                             const InputDecoration(labelText: "Cant.*"),
                             keyboardType: TextInputType.number,
@@ -457,10 +466,7 @@ class _ComprasPageState extends State<ComprasPage> {
                               return null;
                             },
                             onChanged: (val) {
-                              setStateSB(() {
-                                item["quantity"] =
-                                    int.tryParse(val) ?? item["quantity"];
-                              });
+                              item["quantity"] = int.tryParse(val) ?? item["quantity"];
                             },
                           ),
                         ),
