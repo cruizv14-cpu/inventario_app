@@ -404,17 +404,20 @@ class _MermasPageState extends State<MermasPage> {
   }
 
   Widget _buildDesktopTable() {
-    return SingleChildScrollView(
+    return SizedBox(
+      width: double.infinity,
       child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
         child: DataTable(
           headingRowColor: WidgetStateProperty.all(Colors.deepPurple.shade50),
+          columnSpacing: 32,
+          dataRowMinHeight: 48,
+          dataRowMaxHeight: 56,
           columns: const [
-            DataColumn(label: Text("Producto", style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text("Cantidad", style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text("Motivo", style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text("Observación", style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text("Fecha", style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Expanded(child: Text("Producto", style: TextStyle(fontWeight: FontWeight.bold)))),
+            DataColumn(label: Expanded(child: Text("Cantidad", style: TextStyle(fontWeight: FontWeight.bold)))),
+            DataColumn(label: Expanded(child: Text("Motivo", style: TextStyle(fontWeight: FontWeight.bold)))),
+            DataColumn(label: Expanded(child: Text("Observación", style: TextStyle(fontWeight: FontWeight.bold)))),
+            DataColumn(label: Expanded(child: Text("Fecha", style: TextStyle(fontWeight: FontWeight.bold)))),
             DataColumn(label: Text("Acción", style: TextStyle(fontWeight: FontWeight.bold))),
           ],
           rows: mermasFiltradas.map<DataRow>((m) {
