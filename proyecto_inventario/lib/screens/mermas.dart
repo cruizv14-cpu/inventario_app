@@ -237,6 +237,7 @@ class _MermasPageState extends State<MermasPage> {
     final TextEditingController cantidadCtrl = TextEditingController();
     final TextEditingController motivoCtrl = TextEditingController(text: "Producto defectuoso");
     final TextEditingController obsCtrl = TextEditingController();
+    final _formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
@@ -244,36 +245,47 @@ class _MermasPageState extends State<MermasPage> {
         return AlertDialog(
           title: const Text("Registrar Merma"),
           content: SingleChildScrollView(
-            child: Column(
-              children: [
-                DropdownButtonFormField<int>(
-                  value: selectedProduct,
-                  hint: const Text("Producto *"),
-                  items: productos.map((p) {
-                    return DropdownMenuItem<int>(
-                      value: p["id_producto"],
-                      child: Text(p["nombre"] ?? "-"),
-                    );
-                  }).toList(),
-                  onChanged: (val) => setState(() => selectedProduct = val),
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: cantidadCtrl,
-                  decoration: const InputDecoration(labelText: "Cantidad *"),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: motivoCtrl,
-                  decoration: const InputDecoration(labelText: "Motivo *"),
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: obsCtrl,
-                  decoration: const InputDecoration(labelText: "Observación"),
-                ),
-              ],
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  DropdownButtonFormField<int>(
+                    value: selectedProduct,
+                    hint: const Text("Producto *"),
+                    items: productos.map((p) {
+                      return DropdownMenuItem<int>(
+                        value: p["id_producto"],
+                        child: Text(p["nombre"] ?? "-"),
+                      );
+                    }).toList(),
+                    onChanged: (val) => setState(() => selectedProduct = val),
+                    validator: (val) => val == null ? 'Seleccione un producto' : null,
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: cantidadCtrl,
+                    decoration: const InputDecoration(labelText: "Cantidad *"),
+                    keyboardType: TextInputType.number,
+                    validator: (val) {
+                      if (val == null || val.isEmpty) return 'Requerido';
+                      final cant = int.tryParse(val);
+                      if (cant == null || cant <= 0) return 'Debe ser mayor a 0';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: motivoCtrl,
+                    decoration: const InputDecoration(labelText: "Motivo *"),
+                    validator: (val) => (val == null || val.trim().isEmpty) ? 'Requerido' : null,
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: obsCtrl,
+                    decoration: const InputDecoration(labelText: "Observación"),
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [
@@ -283,21 +295,15 @@ class _MermasPageState extends State<MermasPage> {
             ),
             ElevatedButton(
               onPressed: () {
-                if (selectedProduct == null || cantidadCtrl.text.isEmpty || motivoCtrl.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Completa todos los campos obligatorios (*)"),
-                    ),
+                if (_formKey.currentState!.validate()) {
+                  crearMerma(
+                    idProducto: selectedProduct!,
+                    cantidad: int.parse(cantidadCtrl.text),
+                    motivo: motivoCtrl.text.trim(),
+                    observacion: obsCtrl.text.trim(),
                   );
-                  return;
+                  Navigator.pop(context);
                 }
-                crearMerma(
-                  idProducto: selectedProduct!,
-                  cantidad: int.tryParse(cantidadCtrl.text) ?? 0,
-                  motivo: motivoCtrl.text,
-                  observacion: obsCtrl.text,
-                );
-                Navigator.pop(context);
               },
               child: const Text("Guardar"),
             ),

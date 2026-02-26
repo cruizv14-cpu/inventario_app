@@ -90,35 +90,51 @@ class _ClientesPageState extends State<ClientesPage> {
       nombreCtrl.clear(); telefonoCtrl.clear(); direccionCtrl.clear(); rutCtrl.clear();
       comunaSeleccionada = null;
     }
+    
+    final _formKey = GlobalKey<FormState>();
+
     showDialog(
       context: context,
       builder: (_) => StatefulBuilder(builder: (ctx, setS) => AlertDialog(
         title: Text(cliente != null ? "Editar Cliente" : "Agregar Cliente"),
-        content: SizedBox(width: 400, child: SingleChildScrollView(child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: nombreCtrl, decoration: const InputDecoration(labelText: "Nombre", border: OutlineInputBorder())),
-            const SizedBox(height: 8),
-            Row(children: [
-              Expanded(child: TextField(controller: rutCtrl, decoration: const InputDecoration(labelText: "RUT", border: OutlineInputBorder()))),
-              const SizedBox(width: 8),
-              Expanded(child: TextField(controller: telefonoCtrl, decoration: const InputDecoration(labelText: "Teléfono", border: OutlineInputBorder()))),
-            ]),
-            const SizedBox(height: 8),
-            TextField(controller: direccionCtrl, decoration: const InputDecoration(labelText: "Dirección", border: OutlineInputBorder())),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              value: comunaSeleccionada,
-              decoration: const InputDecoration(labelText: "Comuna", border: OutlineInputBorder()),
-              items: comunasRM.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-              onChanged: (v) => setS(() => comunaSeleccionada = v),
-            ),
-          ],
-        ))),
+        content: SizedBox(width: 400, child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: nombreCtrl, 
+                  decoration: const InputDecoration(labelText: "Nombre *", border: OutlineInputBorder()),
+                  validator: (val) => (val == null || val.trim().isEmpty) ? 'Requerido' : null,
+                ),
+                const SizedBox(height: 8),
+                Row(children: [
+                  Expanded(child: TextFormField(controller: rutCtrl, decoration: const InputDecoration(labelText: "RUT", border: OutlineInputBorder()))),
+                  const SizedBox(width: 8),
+                  Expanded(child: TextFormField(controller: telefonoCtrl, decoration: const InputDecoration(labelText: "Teléfono", border: OutlineInputBorder()))),
+                ]),
+                const SizedBox(height: 8),
+                TextFormField(controller: direccionCtrl, decoration: const InputDecoration(labelText: "Dirección", border: OutlineInputBorder())),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  value: comunaSeleccionada,
+                  decoration: const InputDecoration(labelText: "Comuna", border: OutlineInputBorder()),
+                  items: comunasRM.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                  onChanged: (v) => setS(() => comunaSeleccionada = v),
+                ),
+              ],
+            )
+          )
+        )),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
           ElevatedButton(
-            onPressed: cliente != null ? () => updateCliente(cliente["id_cliente"]) : createCliente,
+            onPressed: () {
+              if (_formKey.currentState!.validate()) {
+                cliente != null ? updateCliente(cliente["id_cliente"]) : createCliente();
+              }
+            },
             child: Text(cliente != null ? "Actualizar" : "Guardar"),
           ),
         ],

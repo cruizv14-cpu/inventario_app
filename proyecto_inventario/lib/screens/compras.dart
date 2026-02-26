@@ -346,6 +346,8 @@ class _ComprasPageState extends State<ComprasPage> {
             setStateSB(() => items.removeAt(idx));
           }
 
+          final _formKey = GlobalKey<FormState>();
+
           double calcularTotal() {
             double total = 0;
             for (var i in items) {
@@ -357,9 +359,11 @@ class _ComprasPageState extends State<ComprasPage> {
           return AlertDialog(
             title: const Text("Nueva Compra"),
             content: SingleChildScrollView(
-              child: Column(
-                children: [
-                  // PROVEEDOR - MEJORADO
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    // PROVEEDOR - MEJORADO
                   Container(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
@@ -420,6 +424,7 @@ class _ComprasPageState extends State<ComprasPage> {
                           child: DropdownButtonFormField<int>(
                             value: item["product_id"],
                             hint: const Text("Producto *"),
+                            validator: (val) => val == null ? 'Seleccione' : null,
                             items: productos.map((p) {
                               return DropdownMenuItem<int>(
                                 value: p["id_producto"],
@@ -445,6 +450,12 @@ class _ComprasPageState extends State<ComprasPage> {
                             decoration:
                             const InputDecoration(labelText: "Cant.*"),
                             keyboardType: TextInputType.number,
+                            validator: (val) {
+                              if (val == null || val.isEmpty) return 'Req.';
+                              final num = int.tryParse(val);
+                              if (num == null || num <= 0) return '> 0';
+                              return null;
+                            },
                             onChanged: (val) {
                               setStateSB(() {
                                 item["quantity"] =
@@ -477,25 +488,23 @@ class _ComprasPageState extends State<ComprasPage> {
                 ],
               ),
             ),
-            actions: [
-              TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancelar")),
               ElevatedButton(
                 onPressed: () {
-                  if (items.any((i) => i["product_id"] == null)) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content:
-                        Text("Selecciona todos los productos primero")));
-                    return;
+                  if (_formKey.currentState!.validate()) {
+                    if (items.any((i) => i["product_id"] == null)) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content:
+                          Text("Selecciona todos los productos primero")));
+                      return;
+                    }
+  
+                    debugPrint("=== CREANDO COMPRA ===");
+                    debugPrint("Proveedor ID: $selectedProveedorLocal");
+  
+                    createCompra(
+                        idProveedor: selectedProveedorLocal, items: items);
+                    Navigator.pop(context);
                   }
-
-                  debugPrint("=== CREANDO COMPRA ===");
-                  debugPrint("Proveedor ID: $selectedProveedorLocal");
-
-                  createCompra(
-                      idProveedor: selectedProveedorLocal, items: items);
-                  Navigator.pop(context);
                 },
                 child: const Text("Guardar"),
               ),

@@ -334,6 +334,7 @@ class _VentasPageState extends State<VentasPage> {
     ];
     int? selectedClienteLocal;
     final descuentoCtrl = TextEditingController(text: "0");
+    final _formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
@@ -359,8 +360,10 @@ class _VentasPageState extends State<VentasPage> {
           return AlertDialog(
             title: const Text("Nueva Venta"),
             content: SingleChildScrollView(
-              child: Column(
-                children: [
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
                   // CLIENTE
                   Container(
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -422,6 +425,7 @@ class _VentasPageState extends State<VentasPage> {
                           child: DropdownButtonFormField<int>(
                             value: item["product_id"],
                             hint: const Text("Producto *"),
+                            validator: (val) => val == null ? 'Seleccione' : null,
                             items: productos.map((p) {
                               return DropdownMenuItem<int>(
                                 value: p["id_producto"],
@@ -446,6 +450,12 @@ class _VentasPageState extends State<VentasPage> {
                             initialValue: item["quantity"].toString(),
                             decoration: const InputDecoration(labelText: "Cant.*"),
                             keyboardType: TextInputType.number,
+                            validator: (val) {
+                              if (val == null || val.isEmpty) return 'Req.';
+                              final num = int.tryParse(val);
+                              if (num == null || num <= 0) return '> 0';
+                              return null;
+                            },
                             onChanged: (val) {
                               setStateSB(() {
                                 item["quantity"] =
@@ -506,24 +516,26 @@ class _VentasPageState extends State<VentasPage> {
                   child: const Text("Cancelar")),
               ElevatedButton(
                 onPressed: () {
-                  if (items.any((i) => i["product_id"] == null)) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content:
-                        Text("Selecciona todos los productos primero")));
-                    return;
+                  if (_formKey.currentState!.validate()) {
+                    if (items.any((i) => i["product_id"] == null)) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content:
+                          Text("Selecciona todos los productos primero")));
+                      return;
+                    }
+  
+                    final descuento = double.tryParse(descuentoCtrl.text) ?? 0.0;
+  
+                    debugPrint("=== CREANDO VENTA ===");
+                    debugPrint("Cliente ID: $selectedClienteLocal");
+                    debugPrint("Descuento: $descuento");
+  
+                    createVenta(
+                        idCliente: selectedClienteLocal,
+                        items: items,
+                        descuento: descuento);
+                    Navigator.pop(context);
                   }
-
-                  final descuento = double.tryParse(descuentoCtrl.text) ?? 0.0;
-
-                  debugPrint("=== CREANDO VENTA ===");
-                  debugPrint("Cliente ID: $selectedClienteLocal");
-                  debugPrint("Descuento: $descuento");
-
-                  createVenta(
-                      idCliente: selectedClienteLocal,
-                      items: items,
-                      descuento: descuento);
-                  Navigator.pop(context);
                 },
                 child: const Text("Guardar"),
               ),

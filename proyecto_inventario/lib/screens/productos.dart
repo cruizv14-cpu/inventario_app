@@ -129,6 +129,8 @@ class _ProductosPageState extends State<ProductosPage> {
       stockCtrl.clear(); stockMinimoCtrl.clear();
     }
 
+    final _formKey = GlobalKey<FormState>();
+
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -136,34 +138,98 @@ class _ProductosPageState extends State<ProductosPage> {
         content: SizedBox(
           width: 400,
           child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(controller: nombreCtrl, decoration: const InputDecoration(labelText: "Nombre", border: OutlineInputBorder())),
-                const SizedBox(height: 8),
-                TextField(controller: descripcionCtrl, decoration: const InputDecoration(labelText: "Descripción", border: OutlineInputBorder())),
-                const SizedBox(height: 8),
-                Row(children: [
-                  Expanded(child: TextField(controller: precioCompraCtrl, decoration: const InputDecoration(labelText: "P. Compra", border: OutlineInputBorder()), keyboardType: TextInputType.number)),
-                  const SizedBox(width: 8),
-                  Expanded(child: TextField(controller: precioVentaCtrl, decoration: const InputDecoration(labelText: "P. Venta", border: OutlineInputBorder()), keyboardType: TextInputType.number)),
-                ]),
-                const SizedBox(height: 8),
-                Row(children: [
-                  Expanded(child: TextField(controller: stockCtrl, decoration: const InputDecoration(labelText: "Stock", border: OutlineInputBorder()), keyboardType: TextInputType.number)),
-                  const SizedBox(width: 8),
-                  Expanded(child: TextField(controller: stockMinimoCtrl, decoration: const InputDecoration(labelText: "Stock Mínimo", border: OutlineInputBorder()), keyboardType: TextInputType.number)),
-                ]),
-              ],
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: nombreCtrl,
+                    decoration: const InputDecoration(labelText: "Nombre *", border: OutlineInputBorder()),
+                    validator: (val) => (val == null || val.trim().isEmpty) ? 'Requerido' : null,
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: descripcionCtrl,
+                    decoration: const InputDecoration(labelText: "Descripción", border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: precioCompraCtrl,
+                        decoration: const InputDecoration(labelText: "P. Compra *", border: OutlineInputBorder()),
+                        keyboardType: TextInputType.number,
+                        validator: (val) {
+                          if (val == null || val.isEmpty) return 'Req.';
+                          final num = double.tryParse(val);
+                          if (num == null || num <= 0) return '> 0';
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextFormField(
+                        controller: precioVentaCtrl,
+                        decoration: const InputDecoration(labelText: "P. Venta *", border: OutlineInputBorder()),
+                        keyboardType: TextInputType.number,
+                        validator: (val) {
+                          if (val == null || val.isEmpty) return 'Req.';
+                          final num = double.tryParse(val);
+                          if (num == null || num <= 0) return '> 0';
+                          return null;
+                        },
+                      ),
+                    ),
+                  ]),
+                  const SizedBox(height: 8),
+                  Row(children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: stockCtrl,
+                        decoration: const InputDecoration(labelText: "Stock *", border: OutlineInputBorder()),
+                        keyboardType: TextInputType.number,
+                        validator: (val) {
+                          if (val == null || val.isEmpty) return 'Req.';
+                          final num = int.tryParse(val);
+                          if (num == null || num < 0) return '>= 0';
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextFormField(
+                        controller: stockMinimoCtrl,
+                        decoration: const InputDecoration(labelText: "Stock Mínimo *", border: OutlineInputBorder()),
+                        keyboardType: TextInputType.number,
+                        validator: (val) {
+                          if (val == null || val.isEmpty) return 'Req.';
+                          final num = int.tryParse(val);
+                          if (num == null || num < 0) return '>= 0';
+                          return null;
+                        },
+                      ),
+                    ),
+                  ]),
+                ],
+              ),
             ),
           ),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
           ElevatedButton(
-            onPressed: producto != null
-                ? () => updateProducto(producto["id_producto"])
-                : createProducto,
+            onPressed: () {
+              if (_formKey.currentState!.validate()) {
+                if (producto != null) {
+                  updateProducto(producto["id_producto"]);
+                } else {
+                  createProducto();
+                }
+              }
+            },
             child: Text(producto != null ? "Actualizar" : "Guardar"),
           ),
         ],

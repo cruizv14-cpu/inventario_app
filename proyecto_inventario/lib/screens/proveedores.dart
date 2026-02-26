@@ -86,34 +86,50 @@ class _ProveedoresPageState extends State<ProveedoresPage> {
       nombreCtrl.clear(); telefonoCtrl.clear(); direccionCtrl.clear(); rutCtrl.clear();
       comunaSeleccionada = null;
     }
+    
+    final _formKey = GlobalKey<FormState>();
+
     showDialog(
       context: context,
       builder: (_) => StatefulBuilder(builder: (ctx, setS) => AlertDialog(
         title: Text(proveedor != null ? "Editar Proveedor" : "Agregar Proveedor"),
-        content: SizedBox(width: 400, child: SingleChildScrollView(child: Column(
-          mainAxisSize: MainAxisSize.min, children: [
-            TextField(controller: nombreCtrl, decoration: const InputDecoration(labelText: "Nombre", border: OutlineInputBorder())),
-            const SizedBox(height: 8),
-            Row(children: [
-              Expanded(child: TextField(controller: rutCtrl, decoration: const InputDecoration(labelText: "RUT", border: OutlineInputBorder()))),
-              const SizedBox(width: 8),
-              Expanded(child: TextField(controller: telefonoCtrl, decoration: const InputDecoration(labelText: "Teléfono", border: OutlineInputBorder()))),
-            ]),
-            const SizedBox(height: 8),
-            TextField(controller: direccionCtrl, decoration: const InputDecoration(labelText: "Dirección", border: OutlineInputBorder())),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              value: comunaSeleccionada,
-              decoration: const InputDecoration(labelText: "Comuna", border: OutlineInputBorder()),
-              items: comunasRM.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-              onChanged: (v) => setS(() => comunaSeleccionada = v),
-            ),
-          ],
-        ))),
+        content: SizedBox(width: 400, child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min, children: [
+                TextFormField(
+                  controller: nombreCtrl, 
+                  decoration: const InputDecoration(labelText: "Nombre *", border: OutlineInputBorder()),
+                  validator: (val) => (val == null || val.trim().isEmpty) ? 'Requerido' : null,
+                ),
+                const SizedBox(height: 8),
+                Row(children: [
+                  Expanded(child: TextFormField(controller: rutCtrl, decoration: const InputDecoration(labelText: "RUT", border: OutlineInputBorder()))),
+                  const SizedBox(width: 8),
+                  Expanded(child: TextFormField(controller: telefonoCtrl, decoration: const InputDecoration(labelText: "Teléfono", border: OutlineInputBorder()))),
+                ]),
+                const SizedBox(height: 8),
+                TextFormField(controller: direccionCtrl, decoration: const InputDecoration(labelText: "Dirección", border: OutlineInputBorder())),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  value: comunaSeleccionada,
+                  decoration: const InputDecoration(labelText: "Comuna", border: OutlineInputBorder()),
+                  items: comunasRM.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                  onChanged: (v) => setS(() => comunaSeleccionada = v),
+                ),
+              ],
+            )
+          )
+        )),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
           ElevatedButton(
-            onPressed: proveedor != null ? () => updateProveedor(proveedor["id_proveedor"]) : createProveedor,
+            onPressed: () {
+              if (_formKey.currentState!.validate()) {
+                proveedor != null ? updateProveedor(proveedor["id_proveedor"]) : createProveedor();
+              }
+            },
             child: Text(proveedor != null ? "Actualizar" : "Guardar"),
           ),
         ],
