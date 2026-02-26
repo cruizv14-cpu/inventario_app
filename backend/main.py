@@ -11,7 +11,7 @@ from db import (
     listar_clientes, insertar_cliente, obtener_cliente, actualizar_cliente, eliminar_cliente,
     insertar_venta, listar_ventas, obtener_venta, eliminar_venta,listar_compras, insertar_compra, obtener_compra, eliminar_compra,
     listar_mermas, insertar_merma, eliminar_merma, obtener_productos_mas_vendidos, obtener_clientes_top, obtener_proveedores_top,
-    obtener_ventas_por_comuna, obtener_margenes_productos
+    obtener_ventas_por_comuna, obtener_margenes_productos, obtener_resumen_dashboard
 )
 from reports import router as reports_router
 import jwt
@@ -251,29 +251,7 @@ def api_eliminar_venta(id_venta: int):
 #-- resumen--
 @app.get("/dashboard/resumen")
 def api_resumen_dashboard():
-    productos = listar_productos()
-    clientes = listar_clientes()
-    proveedores = listar_proveedores()
-    ventas = listar_ventas()
-    compras = listar_compras()
-
-    total_productos = len(productos)
-    total_clientes = len(clientes)
-    total_proveedores = len(proveedores)
-    total_ventas = len(ventas)
-    total_compras = len(compras)
-    suma_ventas = sum(v["total"] for v in ventas)
-    suma_compras = sum(c["total"] for c in compras)
-
-    return {
-        "total_productos": total_productos,
-        "total_clientes": total_clientes,
-        "total_proveedores": total_proveedores,
-        "total_ventas": total_ventas,
-        "suma_ventas": suma_ventas,
-        "total_compras": total_compras,     
-        "suma_compras": suma_compras        
-    }
+    return obtener_resumen_dashboard()
 
 @app.get("/compras")
 def api_listar_compras():

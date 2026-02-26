@@ -756,3 +756,45 @@ def obtener_margenes_productos():
         return [dict(row) for row in cur.fetchall()]
     finally:
         release_connection(con)
+
+def obtener_resumen_dashboard():
+    con = get_connection()
+    try:
+        cur = con.cursor(cursor_factory=DictCursor)
+        
+        cur.execute("SELECT COUNT(*) FROM productos")
+        total_productos = cur.fetchone()[0]
+        
+        cur.execute("SELECT COUNT(*) FROM clientes")
+        total_clientes = cur.fetchone()[0]
+        
+        cur.execute("SELECT COUNT(*) FROM proveedores")
+        total_proveedores = cur.fetchone()[0]
+        
+        cur.execute("SELECT COUNT(*), COALESCE(SUM(total), 0) FROM ventas")
+        row_ventas = cur.fetchone()
+        total_ventas = row_ventas[0]
+        suma_ventas = float(row_ventas[1])
+        
+        cur.execute("SELECT COUNT(*), COALESCE(SUM(total), 0) FROM compras")
+        row_compras = cur.fetchone()
+        total_compras = row_compras[0]
+        suma_compras = float(row_compras[1])
+        
+        return {
+            "total_productos": total_productos,
+            "total_clientes": total_clientes,
+            "total_proveedores": total_proveedores,
+            "total_ventas": total_ventas,
+            "suma_ventas": suma_ventas,
+            "total_compras": total_compras,     
+            "suma_compras": suma_compras 
+        }
+    except Exception as e:
+        print(f"Error en resumen de dashboard: {e}")
+        return {
+            "total_productos": 0, "total_clientes": 0, "total_proveedores": 0,
+            "total_ventas": 0, "suma_ventas": 0.0, "total_compras": 0, "suma_compras": 0.0
+        }
+    finally:
+        release_connection(con)
