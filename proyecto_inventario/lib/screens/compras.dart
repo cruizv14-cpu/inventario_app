@@ -501,6 +501,11 @@ class _ComprasPageState extends State<ComprasPage> {
                 child: const Text("Cancelar")),
             ElevatedButton(
               onPressed: () {
+                if (items.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text("Agrega al menos un producto")));
+                  return;
+                }
                 if (_formKey.currentState!.validate()) {
                     if (items.any((i) => i["product_id"] == null)) {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

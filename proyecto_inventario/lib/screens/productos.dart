@@ -193,7 +193,7 @@ class _ProductosPageState extends State<ProductosPage> {
                         validator: (val) {
                           if (val == null || val.isEmpty) return 'Req.';
                           final num = int.tryParse(val);
-                          if (num == null || num < 0) return '>= 0';
+                          if (num == null || num <= 0) return '> 0';
                           return null;
                         },
                       ),
@@ -207,7 +207,7 @@ class _ProductosPageState extends State<ProductosPage> {
                         validator: (val) {
                           if (val == null || val.isEmpty) return 'Req.';
                           final num = int.tryParse(val);
-                          if (num == null || num < 0) return '>= 0';
+                          if (num == null || num <= 0) return '> 0';
                           return null;
                         },
                       ),
