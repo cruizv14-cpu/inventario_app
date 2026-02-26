@@ -32,9 +32,15 @@ app = FastAPI(title="API de Inventario")
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:5000",
+        "http://localhost:5173", # vite
+        "http://localhost:8000", # fastapi
+        "https://inventario-app-gamma-nine.vercel.app", # Vercel URL
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
 )
 app.include_router(reports_router)
