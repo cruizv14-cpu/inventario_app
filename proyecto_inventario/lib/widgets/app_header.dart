@@ -86,7 +86,15 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: const [
-          Icon(Icons.egg, size: 28),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.asset(
+              'assets/logohuevos.png',
+              width: 32,
+              height: 32,
+              fit: BoxFit.contain,
+            ),
+          ),
           SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,7 +191,15 @@ class AppDrawer extends StatelessWidget {
             ),
             child: const Row(
               children: [
-                Icon(Icons.egg, color: Colors.white, size: 40),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    'assets/logohuevos.png',
+                    width: 48,
+                    height: 48,
+                    fit: BoxFit.contain,
+                  ),
+                ),
                 const SizedBox(width: 12),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
