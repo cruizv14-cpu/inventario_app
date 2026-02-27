@@ -87,12 +87,12 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(4),
             child: Image.asset(
               'assets/logohuevos.png',
-              width: 32,
-              height: 32,
-              fit: BoxFit.contain,
+              width: 120, // Aumentado para "estirar" horizontalmente
+              height: 42, // Altura máxima permitida sin romper el margen
+              fit: BoxFit.fill, // Usar fill para permitir el estiramiento solicitado
             ),
           ),
           SizedBox(width: 8),
@@ -192,12 +192,12 @@ class AppDrawer extends StatelessWidget {
             child: Row(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                   child: Image.asset(
                     'assets/logohuevos.png',
-                    width: 48,
-                    height: 48,
-                    fit: BoxFit.contain,
+                    width: 140, // Mucho más grande
+                    height: 60,
+                    fit: BoxFit.fill,
                   ),
                 ),
                 const SizedBox(width: 12),
