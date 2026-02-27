@@ -90,19 +90,32 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
             borderRadius: BorderRadius.circular(4),
             child: Image.asset(
               'assets/logohuevos.png',
-              width: 120, // Aumentado para "estirar" horizontalmente
-              height: 42, // Altura máxima permitida sin romper el margen
-              fit: BoxFit.fill, // Usar fill para permitir el estiramiento solicitado
+              width: mobile ? 100 : 120, // Un poco más pequeño en móvil para dar espacio
+              height: 42,
+              fit: BoxFit.fill,
             ),
           ),
-          SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Sistema de Inventario',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              const Text('Huevos MARA', style: TextStyle(fontSize: 12)),
-            ],
+          const SizedBox(width: 8),
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Sistema de Inventario',
+                  style: TextStyle(
+                    fontSize: mobile ? 14 : 16, // Tamaño adaptable
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  'Huevos MARA',
+                  style: TextStyle(fontSize: mobile ? 11 : 12),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ],
       ),
