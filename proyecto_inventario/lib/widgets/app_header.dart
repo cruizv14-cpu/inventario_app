@@ -85,7 +85,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       foregroundColor: Colors.white,
       title: Row(
         mainAxisSize: MainAxisSize.min,
-        children: const [
+        children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Image.asset(
@@ -189,7 +189,7 @@ class AppDrawer extends StatelessWidget {
                 end: Alignment.bottomRight,
               ),
             ),
-            child: const Row(
+            child: Row(
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
