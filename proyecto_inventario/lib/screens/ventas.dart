@@ -330,7 +330,7 @@ class _VentasPageState extends State<VentasPage> {
   // Dialogo para crear venta
   void openCreateDialog() {
     List<Map<String, dynamic>> items = [
-      {"product_id": null, "quantity": 1, "unit_price": 0.0}
+      {"id": "init", "product_id": null, "quantity": 1, "unit_price": 0.0}
     ];
     final List<TextEditingController> qtyControllers = [
       TextEditingController(text: "1")
@@ -345,7 +345,12 @@ class _VentasPageState extends State<VentasPage> {
         return StatefulBuilder(builder: (contextSB, setStateSB) {
           void addRow() {
             setStateSB(() {
-              items.add({"product_id": null, "quantity": 1, "unit_price": 0.0});
+              items.add({
+                "id": DateTime.now().millisecondsSinceEpoch.toString(),
+                "product_id": null, 
+                "quantity": 1, 
+                "unit_price": 0.0
+              });
               qtyControllers.add(TextEditingController(text: "1"));
             });
           }
@@ -489,6 +494,7 @@ class _VentasPageState extends State<VentasPage> {
                               Expanded(
                                 flex: 2,
                                 child: TextFormField(
+                                  key: ValueKey("qty_field_${item['id']}"),
                                   controller: qtyControllers[idx],
                                   decoration: const InputDecoration(
                                     labelText: "Cant.",

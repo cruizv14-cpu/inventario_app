@@ -329,12 +329,14 @@ class _ComprasPageState extends State<ComprasPage> {
   // DIALOGO para crear compra - MEJORADO
   void openCreateDialog() {
     List<Map<String, dynamic>> items = [
-      {"product_id": null, "quantity": 1, "unit_price": 0.0}
+      {"id": "init", "product_id": null, "quantity": 1, "unit_price": 0.0}
     ];
     List<TextEditingController> qtyControllers = [
       TextEditingController(text: "1")
     ];
     int? selectedProveedorLocal;
+
+    final _formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
@@ -342,7 +344,12 @@ class _ComprasPageState extends State<ComprasPage> {
         return StatefulBuilder(builder: (contextSB, setStateSB) {
           void addRow() {
             setStateSB(() {
-              items.add({"product_id": null, "quantity": 1, "unit_price": 0.0});
+              items.add({
+                "id": DateTime.now().millisecondsSinceEpoch.toString(),
+                "product_id": null, 
+                "quantity": 1, 
+                "unit_price": 0.0
+              });
               qtyControllers.add(TextEditingController(text: "1"));
             });
           }
@@ -354,8 +361,6 @@ class _ComprasPageState extends State<ComprasPage> {
               qtyControllers.removeAt(idx);
             });
           }
-
-          final _formKey = GlobalKey<FormState>();
 
           double calcularTotal() {
             double total = 0;
@@ -488,6 +493,7 @@ class _ComprasPageState extends State<ComprasPage> {
                               Expanded(
                                 flex: 2,
                                 child: TextFormField(
+                                  key: ValueKey("qty_field_${item['id'] ?? idx}"),
                                   controller: qtyControllers[idx],
                                   decoration: const InputDecoration(
                                     labelText: "Cant.",
