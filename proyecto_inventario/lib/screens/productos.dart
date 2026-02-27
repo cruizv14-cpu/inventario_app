@@ -134,93 +134,164 @@ class _ProductosPageState extends State<ProductosPage> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text(producto != null ? "Editar Producto" : "Agregar Producto"),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        titlePadding: EdgeInsets.zero,
+        title: Container(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+          decoration: const BoxDecoration(
+            color: Colors.deepPurple,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(16),
+              topRight: Radius.circular(16),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(producto != null ? Icons.edit : Icons.add_box, color: Colors.white, size: 28),
+              const SizedBox(width: 12),
+              Text(
+                producto != null ? "Editar Producto" : "Nuevo Producto",
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+              ),
+            ],
+          ),
+        ),
         content: SizedBox(
-          width: 400,
+          width: 450,
           child: SingleChildScrollView(
             child: Form(
               key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: nombreCtrl,
-                    decoration: const InputDecoration(labelText: "Nombre *", border: OutlineInputBorder()),
-                    validator: (val) => (val == null || val.trim().isEmpty) ? 'Requerido' : null,
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: descripcionCtrl,
-                    decoration: const InputDecoration(labelText: "Descripción", border: OutlineInputBorder()),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: precioCompraCtrl,
-                        decoration: const InputDecoration(labelText: "P. Compra *", border: OutlineInputBorder()),
-                        keyboardType: TextInputType.number,
-                        validator: (val) {
-                          if (val == null || val.isEmpty) return 'Req.';
-                          final num = double.tryParse(val);
-                          if (num == null || num <= 0) return '> 0';
-                          return null;
-                        },
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: nombreCtrl,
+                      decoration: InputDecoration(
+                        labelText: "Nombre del Producto *",
+                        prefixIcon: const Icon(Icons.shopping_bag_outlined),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
+                      ),
+                      validator: (val) => (val == null || val.trim().isEmpty) ? 'Requerido' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: descripcionCtrl,
+                      decoration: InputDecoration(
+                        labelText: "Descripción",
+                        prefixIcon: const Icon(Icons.description_outlined),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextFormField(
-                        controller: precioVentaCtrl,
-                        decoration: const InputDecoration(labelText: "P. Venta *", border: OutlineInputBorder()),
-                        keyboardType: TextInputType.number,
-                        validator: (val) {
-                          if (val == null || val.isEmpty) return 'Req.';
-                          final num = double.tryParse(val);
-                          if (num == null || num <= 0) return '> 0';
-                          return null;
-                        },
+                    const SizedBox(height: 16),
+                    Row(children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: precioCompraCtrl,
+                          decoration: InputDecoration(
+                            labelText: "P. Compra *",
+                            prefixIcon: const Icon(Icons.download_rounded),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            filled: true,
+                            fillColor: Colors.grey.shade50,
+                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (val) {
+                            if (val == null || val.isEmpty) return 'Req.';
+                            final num = double.tryParse(val);
+                            if (num == null || num <= 0) return '> 0';
+                            return null;
+                          },
+                        ),
                       ),
-                    ),
-                  ]),
-                  const SizedBox(height: 8),
-                  Row(children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: stockCtrl,
-                        decoration: const InputDecoration(labelText: "Stock *", border: OutlineInputBorder()),
-                        keyboardType: TextInputType.number,
-                        validator: (val) {
-                          if (val == null || val.isEmpty) return 'Req.';
-                          final num = int.tryParse(val);
-                          if (num == null || num <= 0) return '> 0';
-                          return null;
-                        },
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: precioVentaCtrl,
+                          decoration: InputDecoration(
+                            labelText: "P. Venta *",
+                            prefixIcon: const Icon(Icons.sell_outlined),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            filled: true,
+                            fillColor: Colors.grey.shade50,
+                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (val) {
+                            if (val == null || val.isEmpty) return 'Req.';
+                            final num = double.tryParse(val);
+                            if (num == null || num <= 0) return '> 0';
+                            return null;
+                          },
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextFormField(
-                        controller: stockMinimoCtrl,
-                        decoration: const InputDecoration(labelText: "Stock Mínimo *", border: OutlineInputBorder()),
-                        keyboardType: TextInputType.number,
-                        validator: (val) {
-                          if (val == null || val.isEmpty) return 'Req.';
-                          final num = int.tryParse(val);
-                          if (num == null || num <= 0) return '> 0';
-                          return null;
-                        },
+                    ]),
+                    const SizedBox(height: 16),
+                    Row(children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: stockCtrl,
+                          decoration: InputDecoration(
+                            labelText: "Stock Act. *",
+                            prefixIcon: const Icon(Icons.inventory_2_outlined),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            filled: true,
+                            fillColor: Colors.grey.shade50,
+                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (val) {
+                            if (val == null || val.isEmpty) return 'Req.';
+                            final num = int.tryParse(val);
+                            if (num == null || num <= 0) return '> 0';
+                            return null;
+                          },
+                        ),
                       ),
-                    ),
-                  ]),
-                ],
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: stockMinimoCtrl,
+                          decoration: InputDecoration(
+                            labelText: "Stock Mín. *",
+                            prefixIcon: const Icon(Icons.warning_amber_rounded),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            filled: true,
+                            fillColor: Colors.grey.shade50,
+                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (val) {
+                            if (val == null || val.isEmpty) return 'Req.';
+                            final num = int.tryParse(val);
+                            if (num == null || num <= 0) return '> 0';
+                            return null;
+                          },
+                        ),
+                      ),
+                    ]),
+                  ],
+                ),
               ),
             ),
           ),
         ),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
-          ElevatedButton(
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancelar", style: TextStyle(color: Colors.grey.shade700)),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepPurple,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            icon: Icon(producto != null ? Icons.save : Icons.add_circle_outline),
             onPressed: () {
               if (_formKey.currentState!.validate()) {
                 if (producto != null) {
@@ -230,7 +301,7 @@ class _ProductosPageState extends State<ProductosPage> {
                 }
               }
             },
-            child: Text(producto != null ? "Actualizar" : "Guardar"),
+            label: Text(producto != null ? "Actualizar" : "Guardar"),
           ),
         ],
       ),

@@ -890,67 +890,92 @@ class _DashboardPageState extends State<DashboardPage> {
                                   : "${d.day.toString().padLeft(2,'0')}/${d.month.toString().padLeft(2,'0')}/${d.year}";
 
                               return AlertDialog(
-                                title: const Text("Seleccionar período del reporte"),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                titlePadding: EdgeInsets.zero,
+                                title: Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.deepPurple,
+                                    borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(16),
+                                      topRight: Radius.circular(16),
+                                    ),
+                                  ),
+                                  child: const Row(
+                                    children: [
+                                      Icon(Icons.picture_as_pdf_outlined, color: Colors.white, size: 28),
+                                      SizedBox(width: 12),
+                                      Text(
+                                        "Generar Reporte PDF",
+                                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                                 content: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Text(
-                                      "Elige el rango de fechas para generar el informe PDF.",
-                                      style: TextStyle(color: Colors.grey, fontSize: 13),
+                                    const Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 8),
+                                      child: Text(
+                                        "Seleccione el rango de fechas para el informe de movimientos e inventario.",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(color: Colors.black87, fontSize: 14),
+                                      ),
                                     ),
-                                    const SizedBox(height: 16),
-                                    Row(children: [
-                                      Expanded(
-                                        child: OutlinedButton.icon(
-                                          icon: const Icon(Icons.calendar_today, size: 16),
-                                          label: Text("Desde: ${_fmt(desde)}"),
-                                          onPressed: () async {
-                                            final picked = await showDatePicker(
-                                              context: ctxSB,
-                                              initialDate: desde ?? DateTime.now(),
-                                              firstDate: DateTime(2020),
-                                              lastDate: DateTime(2100),
-                                            );
-                                            if (picked != null) setSt(() => desde = picked);
-                                          },
-                                        ),
-                                      ),
-                                    ]),
-                                    const SizedBox(height: 8),
-                                    Row(children: [
-                                      Expanded(
-                                        child: OutlinedButton.icon(
-                                          icon: const Icon(Icons.calendar_today, size: 16),
-                                          label: Text("Hasta: ${_fmt(hasta)}"),
-                                          onPressed: () async {
-                                            final picked = await showDatePicker(
-                                              context: ctxSB,
-                                              initialDate: hasta ?? DateTime.now(),
-                                              firstDate: DateTime(2020),
-                                              lastDate: DateTime(2100),
-                                            );
-                                            if (picked != null) setSt(() => hasta = picked);
-                                          },
-                                        ),
-                                      ),
-                                    ]),
+                                    const SizedBox(height: 20),
+                                    _buildDateButton(
+                                      label: "Desde",
+                                      value: _fmt(desde),
+                                      icon: Icons.calendar_today_rounded,
+                                      onTap: () async {
+                                        final picked = await showDatePicker(
+                                          context: ctxSB,
+                                          initialDate: desde ?? DateTime.now(),
+                                          firstDate: DateTime(2020),
+                                          lastDate: DateTime(2100),
+                                        );
+                                        if (picked != null) setSt(() => desde = picked);
+                                      },
+                                    ),
+                                    const SizedBox(height: 12),
+                                    _buildDateButton(
+                                      label: "Hasta",
+                                      value: _fmt(hasta),
+                                      icon: Icons.event_available_rounded,
+                                      onTap: () async {
+                                        final picked = await showDatePicker(
+                                          context: ctxSB,
+                                          initialDate: hasta ?? DateTime.now(),
+                                          firstDate: DateTime(2020),
+                                          lastDate: DateTime(2100),
+                                        );
+                                        if (picked != null) setSt(() => hasta = picked);
+                                      },
+                                    ),
                                   ],
                                 ),
+                                actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.pop(ctx),
-                                    child: const Text("Cancelar"),
+                                    child: Text("Cancelar", style: TextStyle(color: Colors.grey.shade700)),
                                   ),
                                   ElevatedButton.icon(
-                                    icon: const Icon(Icons.picture_as_pdf),
-                                    label: const Text("Descargar PDF"),
+                                    icon: const Icon(Icons.download_rounded),
+                                    label: const Text("Descargar Reporte"),
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
+                                      backgroundColor: Colors.red.shade700,
                                       foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                     ),
                                     onPressed: desde == null || hasta == null
                                         ? null
-                                        : () => Navigator.pop(ctx),
+                                        : () async {
+                                      Navigator.pop(ctx);
+                                      await _downloadPdfReport(desde, hasta, context);
+                                    },
                                   ),
                                 ],
                               );
@@ -958,22 +983,6 @@ class _DashboardPageState extends State<DashboardPage> {
                           );
                         },
                       );
-
-                      if (desde != null && hasta != null) {
-                        try {
-                          final reportService = ReportService();
-                          await reportService.downloadInventoryReport(
-                            desde: desde!,
-                            hasta: hasta!,
-                          );
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("Error al generar PDF: $e")),
-                            );
-                          }
-                        }
-                      }
                     },
                   ),
                 ),
@@ -982,6 +991,54 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Future<void> _downloadPdfReport(DateTime? desde, DateTime? hasta, BuildContext context) async {
+    if (desde != null && hasta != null) {
+      try {
+        final reportService = ReportService();
+        await reportService.downloadInventoryReport(
+          desde: desde,
+          hasta: hasta,
+        );
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Error al generar PDF: $e")),
+          );
+        }
+      }
+    }
+  }
+
+  Widget _buildDateButton({required String label, required String value, required IconData icon, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.grey.shade50,
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: Colors.deepPurple),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
+                Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const Spacer(),
+            const Icon(Icons.arrow_drop_down, color: Colors.grey),
+          ],
+        ),
       ),
     );
   }

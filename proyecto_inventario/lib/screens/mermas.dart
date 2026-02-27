@@ -242,58 +242,120 @@ class _MermasPageState extends State<MermasPage> {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text("Registrar Merma"),
-          content: SingleChildScrollView(
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  DropdownButtonFormField<int>(
-                    value: selectedProduct,
-                    hint: const Text("Producto *"),
-                    items: productos.map((p) {
-                      return DropdownMenuItem<int>(
-                        value: p["id_producto"],
-                        child: Text(p["nombre"] ?? "-"),
-                      );
-                    }).toList(),
-                    onChanged: (val) => setState(() => selectedProduct = val),
-                    validator: (val) => val == null ? 'Seleccione un producto' : null,
+        return StatefulBuilder(builder: (ctx, setS) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          titlePadding: EdgeInsets.zero,
+          title: Container(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+            decoration: const BoxDecoration(
+              color: Colors.deepPurple,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.remove_shopping_cart_outlined, color: Colors.white, size: 28),
+                const SizedBox(width: 12),
+                Text(
+                  "Registrar Merma",
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+                ),
+              ],
+            ),
+          ),
+          content: SizedBox(
+            width: 450,
+            child: SingleChildScrollView(
+              child: Form(
+                key: _formKey,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      DropdownButtonFormField<int>(
+                        value: selectedProduct,
+                        hint: const Text("Seleccionar Producto *"),
+                        decoration: InputDecoration(
+                          labelText: "Producto *",
+                          prefixIcon: const Icon(Icons.inventory_2_outlined),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                        ),
+                        items: productos.map((p) {
+                          return DropdownMenuItem<int>(
+                            value: p["id_producto"],
+                            child: Text(p["nombre"] ?? "-"),
+                          );
+                        }).toList(),
+                        onChanged: (val) => setS(() => selectedProduct = val),
+                        validator: (val) => val == null ? 'Seleccione un producto' : null,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: cantidadCtrl,
+                        decoration: InputDecoration(
+                          labelText: "Cantidad mermada *",
+                          prefixIcon: const Icon(Icons.exposure_minus_1_rounded),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: (val) {
+                          if (val == null || val.isEmpty) return 'Requerido';
+                          final cant = int.tryParse(val);
+                          if (cant == null || cant <= 0) return 'Debe ser mayor a 0';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: motivoCtrl,
+                        decoration: InputDecoration(
+                          labelText: "Motivo de la merma *",
+                          prefixIcon: const Icon(Icons.report_problem_outlined),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                        ),
+                        validator: (val) => (val == null || val.trim().isEmpty) ? 'Requerido' : null,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: obsCtrl,
+                        maxLines: 2,
+                        decoration: InputDecoration(
+                          labelText: "Observaciones adicionales",
+                          prefixIcon: const Icon(Icons.notes_rounded),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: cantidadCtrl,
-                    decoration: const InputDecoration(labelText: "Cantidad *"),
-                    keyboardType: TextInputType.number,
-                    validator: (val) {
-                      if (val == null || val.isEmpty) return 'Requerido';
-                      final cant = int.tryParse(val);
-                      if (cant == null || cant <= 0) return 'Debe ser mayor a 0';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: motivoCtrl,
-                    decoration: const InputDecoration(labelText: "Motivo *"),
-                    validator: (val) => (val == null || val.trim().isEmpty) ? 'Requerido' : null,
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: obsCtrl,
-                    decoration: const InputDecoration(labelText: "Observación"),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
+          actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Cancelar"),
+              child: Text("Cancelar", style: TextStyle(color: Colors.grey.shade700)),
             ),
-            ElevatedButton(
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepPurple,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              icon: const Icon(Icons.save),
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
                   crearMerma(
@@ -305,10 +367,10 @@ class _MermasPageState extends State<MermasPage> {
                   Navigator.pop(context);
                 }
               },
-              child: const Text("Guardar"),
+              label: const Text("Guardar Registro"),
             ),
           ],
-        );
+        ));
       },
     );
   }

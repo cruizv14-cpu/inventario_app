@@ -366,163 +366,233 @@ class _ComprasPageState extends State<ComprasPage> {
           }
 
           return AlertDialog(
-            title: const Text("Nueva Compra"),
-            content: SingleChildScrollView(
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    // PROVEEDOR - MEJORADO
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8),
-                          child: Text(
-                            "Proveedor *",
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        DropdownButton<int?>(
-                          isExpanded: true,
-                          value: selectedProveedorLocal,
-                          hint: const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 8),
-                            child: Text("Selecciona un proveedor"),
-                          ),
-                          items: [
-                            const DropdownMenuItem<int?>(
-                              value: null,
-                              child: Text("Sin proveedor"),
-                            ),
-                            ...proveedores.map((p) {
-                              return DropdownMenuItem<int?>(
-                                value: p["id_proveedor"],
-                                child: Text(p["nombre"] ?? "-"),
-                              );
-                            }).toList(),
-                          ],
-                          onChanged: (val) {
-                            setStateSB(() => selectedProveedorLocal = val);
-                            debugPrint("Proveedor seleccionado: $val");
-                          },
-                        ),
-                      ],
-                    ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            titlePadding: EdgeInsets.zero,
+            title: Container(
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+              decoration: const BoxDecoration(
+                color: Colors.deepPurple,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.shopping_cart_checkout_rounded, color: Colors.white, size: 28),
+                  const SizedBox(width: 12),
+                  Text(
+                    "Nueva Compra",
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
                   ),
-                  const SizedBox(height: 16),
-
-                  // PRODUCTOS
-                  ...items.asMap().entries.map((entry) {
-                    final idx = entry.key;
-                    final item = entry.value;
-                    return Row(
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: DropdownButtonFormField<int>(
-                            value: item["product_id"],
-                            hint: const Text("Producto *"),
-                            validator: (val) => val == null ? 'Seleccione' : null,
-                            items: productos.map((p) {
-                              return DropdownMenuItem<int>(
-                                value: p["id_producto"],
-                                child: Text(p["nombre"] ?? "-"),
-                              );
-                            }).toList(),
-                            onChanged: (val) {
-                              setStateSB(() {
-                                item["product_id"] = val;
-                                final producto = productos.firstWhere(
-                                        (prod) => prod["id_producto"] == val);
-                                item["unit_price"] =
-                                    (producto["precio_compra"] ?? 0).toDouble();
-                              });
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          flex: 2,
-                          child: TextFormField(
-                            controller: qtyControllers[idx],
-                            decoration:
-                            const InputDecoration(labelText: "Cant.*"),
-                            keyboardType: TextInputType.number,
-                            validator: (val) {
-                              if (val == null || val.isEmpty) return 'Req.';
-                              final num = int.tryParse(val);
-                              if (num == null || num <= 0) return '> 0';
-                              return null;
-                            },
-                            onChanged: (val) {
-                              item["quantity"] = int.tryParse(val) ?? item["quantity"];
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                              "\$${(item["unit_price"] * item["quantity"]).toStringAsFixed(0)}"),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.remove_circle, color: Colors.red),
-                          onPressed: () => removeRow(idx),
-                        ),
-                      ],
-                    );
-                  }).toList(),
-                  TextButton.icon(
-                      onPressed: addRow,
-                      icon: const Icon(Icons.add),
-                      label: const Text("Agregar producto")),
-                  const SizedBox(height: 12),
-                  Text("Total: \$${calcularTotal().toStringAsFixed(0)}",
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16)),
                 ],
               ),
             ),
-          ),
-          actions: [
-            TextButton(
+            content: SizedBox(
+              width: 600,
+              child: SingleChildScrollView(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 8),
+                      // PROVEEDOR SECTION
+                      Text("Información del Proveedor", style: TextStyle(color: Colors.deepPurple.shade700, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<int?>(
+                        isExpanded: true,
+                        value: selectedProveedorLocal,
+                        decoration: InputDecoration(
+                          labelText: "Proveedor *",
+                          prefixIcon: const Icon(Icons.local_shipping_outlined),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                        ),
+                        hint: const Text("Selecciona un proveedor"),
+                        items: [
+                          const DropdownMenuItem<int?>(
+                            value: null,
+                            child: Text("Sin proveedor (Compra Directa)"),
+                          ),
+                          ...proveedores.map((p) {
+                            return DropdownMenuItem<int?>(
+                              value: p["id_proveedor"],
+                              child: Text(p["nombre"] ?? "-"),
+                            );
+                          }).toList(),
+                        ],
+                        onChanged: (val) {
+                          setStateSB(() => selectedProveedorLocal = val);
+                        },
+                      ),
+                      const Divider(height: 32),
+                      
+                      // PRODUCTOS SECTION
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("Productos", style: TextStyle(color: Colors.deepPurple.shade700, fontWeight: FontWeight.bold)),
+                          TextButton.icon(
+                            onPressed: addRow,
+                            icon: const Icon(Icons.add_circle_outline),
+                            label: const Text("Agregar"),
+                            style: TextButton.styleFrom(foregroundColor: Colors.deepPurple),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ...items.asMap().entries.map((entry) {
+                        final idx = entry.key;
+                        final item = entry.value;
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 4,
+                                child: DropdownButtonFormField<int>(
+                                  value: item["product_id"],
+                                  decoration: const InputDecoration(
+                                    labelText: "Producto",
+                                    isDense: true,
+                                    border: UnderlineInputBorder(),
+                                  ),
+                                  validator: (val) => val == null ? 'Seleccione' : null,
+                                  items: productos.map((p) {
+                                    return DropdownMenuItem<int>(
+                                      value: p["id_producto"],
+                                      child: Text(p["nombre"] ?? "-", style: const TextStyle(fontSize: 13)),
+                                    );
+                                  }).toList(),
+                                  onChanged: (val) {
+                                    setStateSB(() {
+                                      item["product_id"] = val;
+                                      final producto = productos.firstWhere(
+                                              (prod) => prod["id_producto"] == val);
+                                      item["unit_price"] =
+                                          (producto["precio_compra"] ?? 0).toDouble();
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                flex: 2,
+                                child: TextFormField(
+                                  controller: qtyControllers[idx],
+                                  decoration: const InputDecoration(
+                                    labelText: "Cant.",
+                                    isDense: true,
+                                    border: UnderlineInputBorder(),
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                  validator: (val) {
+                                    if (val == null || val.isEmpty) return 'Req.';
+                                    final num = int.tryParse(val);
+                                    if (num == null || num <= 0) return '> 0';
+                                    return null;
+                                  },
+                                  onChanged: (val) {
+                                    item["quantity"] = int.tryParse(val) ?? item["quantity"];
+                                    setStateSB(() {}); // For subtotal update
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  const Text("Subtotal", style: TextStyle(fontSize: 10, color: Colors.grey)),
+                                  Text(
+                                    "\$${(item["unit_price"] * item["quantity"]).toStringAsFixed(0)}",
+                                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(width: 4),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                                onPressed: () => removeRow(idx),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      
+                      if (items.isEmpty)
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            child: Text("No hay productos añadidos", style: TextStyle(color: Colors.grey.shade400, fontStyle: FontStyle.italic)),
+                          ),
+                        ),
+
+                      const Divider(height: 32),
+
+                      // TOTAL SECTION
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.deepPurple.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text("Costo Total de Compra:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            Text(
+                              "\$${calcularTotal().toStringAsFixed(0)}",
+                              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            actions: [
+              TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text("Cancelar")),
-            ElevatedButton(
-              onPressed: () {
-                if (items.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text("Agrega al menos un producto")));
-                  return;
-                }
-                if (_formKey.currentState!.validate()) {
+                child: Text("Cancelar", style: TextStyle(color: Colors.grey.shade700)),
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  elevation: 2,
+                ),
+                icon: const Icon(Icons.assignment_turned_in_outlined),
+                onPressed: () {
+                  if (items.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text("Agrega al menos un producto")));
+                    return;
+                  }
+                  if (_formKey.currentState!.validate()) {
                     if (items.any((i) => i["product_id"] == null)) {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                           content:
                           Text("Selecciona todos los productos primero")));
                       return;
                     }
-  
-                    debugPrint("=== CREANDO COMPRA ===");
-                    debugPrint("Proveedor ID: $selectedProveedorLocal");
-  
-                    createCompra(
-                        idProveedor: selectedProveedorLocal, items: items);
+                    createCompra(idProveedor: selectedProveedorLocal, items: items);
                     Navigator.pop(context);
                   }
                 },
-                child: const Text("Guardar"),
+                label: const Text("Registrar Compra", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               ),
             ],
           );

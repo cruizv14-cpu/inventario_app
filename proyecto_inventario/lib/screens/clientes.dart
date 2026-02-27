@@ -97,45 +97,130 @@ class _ClientesPageState extends State<ClientesPage> {
       context: context,
       builder: (_) => StatefulBuilder(builder: (ctx, setS) => AlertDialog(
         title: Text(cliente != null ? "Editar Cliente" : "Agregar Cliente"),
-        content: SizedBox(width: 400, child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: nombreCtrl, 
-                  decoration: const InputDecoration(labelText: "Nombre *", border: OutlineInputBorder()),
-                  validator: (val) => (val == null || val.trim().isEmpty) ? 'Requerido' : null,
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setS) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        titlePadding: EdgeInsets.zero,
+        title: Container(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+          decoration: const BoxDecoration(
+            color: Colors.deepPurple,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(16),
+              topRight: Radius.circular(16),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(cliente != null ? Icons.person_outline : Icons.person_add_alt_1_outlined, color: Colors.white, size: 28),
+              const SizedBox(width: 12),
+              Text(
+                cliente != null ? "Editar Cliente" : "Nuevo Cliente",
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+              ),
+            ],
+          ),
+        ),
+        content: SizedBox(
+          width: 450,
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: nombreCtrl, 
+                      decoration: InputDecoration(
+                        labelText: "Nombre Completo *",
+                        prefixIcon: const Icon(Icons.person_outline),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
+                      ),
+                      validator: (val) => (val == null || val.trim().isEmpty) ? 'Requerido' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: rutCtrl,
+                          decoration: InputDecoration(
+                            labelText: "RUT",
+                            prefixIcon: const Icon(Icons.badge_outlined),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            filled: true,
+                            fillColor: Colors.grey.shade50,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: telefonoCtrl,
+                          decoration: InputDecoration(
+                            labelText: "Teléfono",
+                            prefixIcon: const Icon(Icons.phone_outlined),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            filled: true,
+                            fillColor: Colors.grey.shade50,
+                          ),
+                        ),
+                      ),
+                    ]),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: direccionCtrl,
+                      decoration: InputDecoration(
+                        labelText: "Dirección",
+                        prefixIcon: const Icon(Icons.location_on_outlined),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: comunaSeleccionada,
+                      decoration: InputDecoration(
+                        labelText: "Comuna",
+                        prefixIcon: const Icon(Icons.map_outlined),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
+                      ),
+                      items: comunasRM.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                      onChanged: (v) => setS(() => comunaSeleccionada = v),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                Row(children: [
-                  Expanded(child: TextFormField(controller: rutCtrl, decoration: const InputDecoration(labelText: "RUT", border: OutlineInputBorder()))),
-                  const SizedBox(width: 8),
-                  Expanded(child: TextFormField(controller: telefonoCtrl, decoration: const InputDecoration(labelText: "Teléfono", border: OutlineInputBorder()))),
-                ]),
-                const SizedBox(height: 8),
-                TextFormField(controller: direccionCtrl, decoration: const InputDecoration(labelText: "Dirección", border: OutlineInputBorder())),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
-                  value: comunaSeleccionada,
-                  decoration: const InputDecoration(labelText: "Comuna", border: OutlineInputBorder()),
-                  items: comunasRM.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-                  onChanged: (v) => setS(() => comunaSeleccionada = v),
-                ),
-              ],
-            )
-          )
-        )),
+              ),
+            ),
+          ),
+        ),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
-          ElevatedButton(
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancelar", style: TextStyle(color: Colors.grey.shade700)),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepPurple,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            icon: Icon(cliente != null ? Icons.save : Icons.add_circle_outline),
             onPressed: () {
               if (_formKey.currentState!.validate()) {
                 cliente != null ? updateCliente(cliente["id_cliente"]) : createCliente();
               }
             },
-            child: Text(cliente != null ? "Actualizar" : "Guardar"),
+            label: Text(cliente != null ? "Actualizar" : "Guardar"),
           ),
         ],
       )),

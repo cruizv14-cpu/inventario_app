@@ -358,164 +358,245 @@ class _VentasPageState extends State<VentasPage> {
           }
 
           return AlertDialog(
-            title: const Text("Nueva Venta"),
-            content: SingleChildScrollView(
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                  // CLIENTE
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8),
-                          child: Text(
-                            "Cliente *",
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        DropdownButton<int?>(
-                          isExpanded: true,
-                          value: selectedClienteLocal,
-                          hint: const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 8),
-                            child: Text("Selecciona un cliente"),
-                          ),
-                          items: [
-                            const DropdownMenuItem<int?>(
-                              value: null,
-                              child: Text("Sin cliente"),
-                            ),
-                            ...clientes.map((c) {
-                              return DropdownMenuItem<int?>(
-                                value: c["id_cliente"],
-                                child: Text(c["nombre"] ?? "-"),
-                              );
-                            }).toList(),
-                          ],
-                          onChanged: (val) {
-                            setStateSB(() => selectedClienteLocal = val);
-                            debugPrint("Cliente seleccionado: $val");
-                          },
-                        ),
-                      ],
-                    ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            titlePadding: EdgeInsets.zero,
+            title: Container(
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+              decoration: const BoxDecoration(
+                color: Colors.deepPurple,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.point_of_sale_rounded, color: Colors.white, size: 28),
+                  const SizedBox(width: 12),
+                  Text(
+                    "Nueva Venta",
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
                   ),
-                  const SizedBox(height: 16),
-
-                  // PRODUCTOS
-                  ...items.asMap().entries.map((entry) {
-                    final idx = entry.key;
-                    final item = entry.value;
-                    return Row(
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: DropdownButtonFormField<int>(
-                            value: item["product_id"],
-                            hint: const Text("Producto *"),
-                            validator: (val) => val == null ? 'Seleccione' : null,
-                            items: productos.map((p) {
-                              return DropdownMenuItem<int>(
-                                value: p["id_producto"],
-                                child: Text(p["nombre"] ?? "-"),
-                              );
-                            }).toList(),
-                            onChanged: (val) {
-                              setStateSB(() {
-                                item["product_id"] = val;
-                                final producto = productos.firstWhere(
-                                        (prod) => prod["id_producto"] == val);
-                                item["unit_price"] =
-                                    (producto["precio_venta"] ?? 0).toDouble();
-                              });
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          flex: 2,
-                          child: TextFormField(
-                            initialValue: item["quantity"].toString(),
-                            decoration: const InputDecoration(labelText: "Cant.*"),
-                            keyboardType: TextInputType.number,
-                            validator: (val) {
-                              if (val == null || val.isEmpty) return 'Req.';
-                              final num = int.tryParse(val);
-                              if (num == null || num <= 0) return '> 0';
-                              return null;
-                            },
-                            onChanged: (val) {
-                              setStateSB(() {
-                                item["quantity"] =
-                                    int.tryParse(val) ?? item["quantity"];
-                              });
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                              "\$${(item["unit_price"] * item["quantity"]).toStringAsFixed(0)}"),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.remove_circle, color: Colors.red),
-                          onPressed: () => removeRow(idx),
-                        ),
-                      ],
-                    );
-                  }).toList(),
-                  TextButton.icon(
-                      onPressed: addRow,
-                      icon: const Icon(Icons.add),
-                      label: const Text("Agregar producto")),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: descuentoCtrl,
-                    decoration:
-                    const InputDecoration(labelText: "Descuento (\$)"),
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 12),
-                  Builder(builder: (_) {
-                    final subtotal = calcularSubtotal();
-                    final descuento = double.tryParse(descuentoCtrl.text) ?? 0.0;
-                    final iva =
-                    double.parse(((subtotal - descuento) * 0.19).toStringAsFixed(2));
-                    final total = subtotal - descuento + iva;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("Subtotal: \$${subtotal.toStringAsFixed(0)}"),
-                        Text("Descuento: \$${descuento.toStringAsFixed(0)}"),
-                        Text("IVA (19%): \$${iva.toStringAsFixed(0)}"),
-                        const SizedBox(height: 6),
-                        Text("Total: \$${total.toStringAsFixed(0)}",
-                            style: const TextStyle(fontSize: 16)),
-                      ],
-                    );
-                  }),
                 ],
               ),
             ),
-          ),
-          actions: [
-            TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancelar")),
-              ElevatedButton(
+            content: SizedBox(
+              width: 600,
+              child: SingleChildScrollView(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 8),
+                      // CLIENTE SECTION
+                      Text("Información del Cliente", style: TextStyle(color: Colors.deepPurple.shade700, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<int?>(
+                        isExpanded: true,
+                        value: selectedClienteLocal,
+                        decoration: InputDecoration(
+                          labelText: "Cliente *",
+                          prefixIcon: const Icon(Icons.person_pin_outlined),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                        ),
+                        hint: const Text("Selecciona un cliente"),
+                        items: [
+                          const DropdownMenuItem<int?>(
+                            value: null,
+                            child: Text("Sin cliente (Venta General)"),
+                          ),
+                          ...clientes.map((c) {
+                            return DropdownMenuItem<int?>(
+                              value: c["id_cliente"],
+                              child: Text(c["nombre"] ?? "-"),
+                            );
+                          }).toList(),
+                        ],
+                        onChanged: (val) {
+                          setStateSB(() => selectedClienteLocal = val);
+                        },
+                      ),
+                      const Divider(height: 32),
+                      
+                      // PRODUCTOS SECTION
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("Productos", style: TextStyle(color: Colors.deepPurple.shade700, fontWeight: FontWeight.bold)),
+                          TextButton.icon(
+                            onPressed: addRow,
+                            icon: const Icon(Icons.add_circle_outline),
+                            label: const Text("Agregar"),
+                            style: TextButton.styleFrom(foregroundColor: Colors.deepPurple),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ...items.asMap().entries.map((entry) {
+                        final idx = entry.key;
+                        final item = entry.value;
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 4,
+                                child: DropdownButtonFormField<int>(
+                                  value: item["product_id"],
+                                  decoration: const InputDecoration(
+                                    labelText: "Producto",
+                                    isDense: true,
+                                    border: UnderlineInputBorder(),
+                                  ),
+                                  validator: (val) => val == null ? 'Seleccione' : null,
+                                  items: productos.map((p) {
+                                    return DropdownMenuItem<int>(
+                                      value: p["id_producto"],
+                                      child: Text(p["nombre"] ?? "-", style: const TextStyle(fontSize: 13)),
+                                    );
+                                  }).toList(),
+                                  onChanged: (val) {
+                                    setStateSB(() {
+                                      item["product_id"] = val;
+                                      final producto = productos.firstWhere(
+                                              (prod) => prod["id_producto"] == val);
+                                      item["unit_price"] =
+                                          (producto["precio_venta"] ?? 0).toDouble();
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                flex: 2,
+                                child: TextFormField(
+                                  initialValue: item["quantity"].toString(),
+                                  decoration: const InputDecoration(
+                                    labelText: "Cant.",
+                                    isDense: true,
+                                    border: UnderlineInputBorder(),
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                  validator: (val) {
+                                    if (val == null || val.isEmpty) return 'Req.';
+                                    final num = int.tryParse(val);
+                                    if (num == null || num <= 0) return '> 0';
+                                    return null;
+                                  },
+                                  onChanged: (val) {
+                                    setStateSB(() {
+                                      item["quantity"] =
+                                          int.tryParse(val) ?? item["quantity"];
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  const Text("Subtotal", style: TextStyle(fontSize: 10, color: Colors.grey)),
+                                  Text(
+                                    "\$${(item["unit_price"] * item["quantity"]).toStringAsFixed(0)}",
+                                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(width: 4),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                                onPressed: () => removeRow(idx),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      
+                      if (items.isEmpty)
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            child: Text("No hay productos añadidos", style: TextStyle(color: Colors.grey.shade400, fontStyle: FontStyle.italic)),
+                          ),
+                        ),
+
+                      const Divider(height: 32),
+
+                      // TOTALS SECTION
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.deepPurple.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            TextField(
+                              controller: descuentoCtrl,
+                              decoration: InputDecoration(
+                                labelText: "Descuento Aplicado (\$)",
+                                prefixIcon: const Icon(Icons.loyalty_outlined),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                isDense: true,
+                                filled: true,
+                                fillColor: Colors.white,
+                              ),
+                              keyboardType: TextInputType.number,
+                              onChanged: (_) => setStateSB(() {}),
+                            ),
+                            const SizedBox(height: 16),
+                            Builder(builder: (_) {
+                              final subtotal = calcularSubtotal();
+                              final descuento = double.tryParse(descuentoCtrl.text) ?? 0.0;
+                              final iva = double.parse(((subtotal - descuento) * 0.19).toStringAsFixed(2));
+                              final total = subtotal - descuento + iva;
+                              
+                              return Column(
+                                children: [
+                                  _buildSummaryRow("Subtotal:", "\$${subtotal.toStringAsFixed(0)}"),
+                                  _buildSummaryRow("Descuento:", "-\$${descuento.toStringAsFixed(0)}"),
+                                  _buildSummaryRow("IVA (19%):", "+\$${iva.toStringAsFixed(0)}"),
+                                  const Divider(),
+                                  _buildSummaryRow(
+                                    "Total a Pagar:", 
+                                    "\$${total.toStringAsFixed(0)}", 
+                                    isTotal: true
+                                  ),
+                                ],
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text("Cancelar", style: TextStyle(color: Colors.grey.shade700)),
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  elevation: 2,
+                ),
+                icon: const Icon(Icons.check_circle_outline),
                 onPressed: () {
                   if (items.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -529,13 +610,7 @@ class _VentasPageState extends State<VentasPage> {
                           Text("Selecciona todos los productos primero")));
                       return;
                     }
-  
                     final descuento = double.tryParse(descuentoCtrl.text) ?? 0.0;
-  
-                    debugPrint("=== CREANDO VENTA ===");
-                    debugPrint("Cliente ID: $selectedClienteLocal");
-                    debugPrint("Descuento: $descuento");
-  
                     createVenta(
                         idCliente: selectedClienteLocal,
                         items: items,
@@ -543,11 +618,34 @@ class _VentasPageState extends State<VentasPage> {
                     Navigator.pop(context);
                   }
                 },
-                child: const Text("Guardar"),
+                label: const Text("Finalizar Venta", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               ),
             ],
           );
         });
+      },
+    );
+  }
+
+  Widget _buildSummaryRow(String label, String value, {bool isTotal = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(
+            fontSize: isTotal ? 18 : 14,
+            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+            color: isTotal ? Colors.deepPurple.shade900 : Colors.grey.shade700,
+          )),
+          Text(value, style: TextStyle(
+            fontSize: isTotal ? 20 : 14,
+            fontWeight: isTotal ? FontWeight.bold : FontWeight.bold,
+            color: isTotal ? Colors.deepPurple.shade900 : Colors.black87,
+          )),
+        ],
+      ),
+    );
       },
     );
   }
