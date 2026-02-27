@@ -95,10 +95,6 @@ class _ClientesPageState extends State<ClientesPage> {
 
     showDialog(
       context: context,
-      builder: (_) => StatefulBuilder(builder: (ctx, setS) => AlertDialog(
-        title: Text(cliente != null ? "Editar Cliente" : "Agregar Cliente"),
-    showDialog(
-      context: context,
       builder: (ctx) => StatefulBuilder(builder: (ctx, setS) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         titlePadding: EdgeInsets.zero,
@@ -113,11 +109,11 @@ class _ClientesPageState extends State<ClientesPage> {
           ),
           child: Row(
             children: [
-              Icon(cliente != null ? Icons.person_outline : Icons.person_add_alt_1_outlined, color: Colors.white, size: 28),
+              Icon(cliente != null ? Icons.edit_note_rounded : Icons.person_add_alt_1_rounded, color: Colors.white, size: 28),
               const SizedBox(width: 12),
               Text(
-                cliente != null ? "Editar Cliente" : "Nuevo Cliente",
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+                cliente != null ? "Editar Cliente" : "Agregar Cliente",
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
               ),
             ],
           ),

@@ -646,8 +646,6 @@ class _VentasPageState extends State<VentasPage> {
         ],
       ),
     );
-      },
-    );
   }
 
   @override
