@@ -447,6 +447,7 @@ class _ComprasPageState extends State<ComprasPage> {
                         final idx = entry.key;
                         final item = entry.value;
                         return Container(
+                          key: ValueKey("compra_item_${idx}"), // Clave para mantener el foco
                           margin: const EdgeInsets.only(bottom: 12),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
@@ -502,7 +503,13 @@ class _ComprasPageState extends State<ComprasPage> {
                                   },
                                   onChanged: (val) {
                                     item["quantity"] = int.tryParse(val) ?? item["quantity"];
-                                    setStateSB(() {}); // For subtotal update
+                                    // NO usamos setStateSB aquí para que el teclado no salte
+                                    // El subtotal de la fila se actualiza visualmente al redibujar el diálogo por otros cambios
+                                    // o si queremos actualización inmediata del total, podemos usar un ValueNotifier o un pequeño truco
+                                    // Pero para evitar el cierre del teclado, el rebuild debe ser contenido.
+                                    // Flutter a veces pierde foco si el widget padre se reconstruye completamente.
+                                    // Intentemos solo con el ValueKey primero.
+                                    setStateSB(() {}); 
                                   },
                                 ),
                               ),
@@ -605,8 +612,8 @@ class _ComprasPageState extends State<ComprasPage> {
   Widget build(BuildContext context) {
     final mobile = isMobile(context);
     return Scaffold(
-      appBar: AppHeader(parentContext: context),
-      drawer: mobile ? AppDrawer(parentContext: context) : null,
+      appBar: AppHeader(parentContext: context, activePage: 'Compras'),
+      drawer: mobile ? AppDrawer(parentContext: context, activePage: 'Compras') : null,
       floatingActionButton: FloatingActionButton(
         onPressed: openCreateDialog,
         backgroundColor: Colors.deepPurple,

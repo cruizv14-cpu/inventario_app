@@ -813,9 +813,9 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppHeader(parentContext: context),
+      appBar: AppHeader(parentContext: context, activePage: 'Inicio'),
       drawer: isMobile(context)
-          ? AppDrawer(parentContext: context)
+          ? AppDrawer(parentContext: context, activePage: 'Inicio')
           : null,
       body: LayoutBuilder(
         builder: (context, constraints) {

@@ -332,6 +332,9 @@ class _VentasPageState extends State<VentasPage> {
     List<Map<String, dynamic>> items = [
       {"product_id": null, "quantity": 1, "unit_price": 0.0}
     ];
+    final List<TextEditingController> qtyControllers = [
+      TextEditingController(text: "1")
+    ];
     int? selectedClienteLocal;
     final descuentoCtrl = TextEditingController(text: "0");
     final _formKey = GlobalKey<FormState>();
@@ -341,12 +344,18 @@ class _VentasPageState extends State<VentasPage> {
       builder: (BuildContext dialogContext) {
         return StatefulBuilder(builder: (contextSB, setStateSB) {
           void addRow() {
-            setStateSB(() =>
-                items.add({"product_id": null, "quantity": 1, "unit_price": 0.0}));
+            setStateSB(() {
+              items.add({"product_id": null, "quantity": 1, "unit_price": 0.0});
+              qtyControllers.add(TextEditingController(text: "1"));
+            });
           }
 
           void removeRow(int idx) {
-            setStateSB(() => items.removeAt(idx));
+            setStateSB(() {
+              items.removeAt(idx);
+              qtyControllers[idx].dispose();
+              qtyControllers.removeAt(idx);
+            });
           }
 
           double calcularSubtotal() {
@@ -439,6 +448,7 @@ class _VentasPageState extends State<VentasPage> {
                         final idx = entry.key;
                         final item = entry.value;
                         return Container(
+                          key: ValueKey("venta_item_${idx}"), // Clave para mantener el foco
                           margin: const EdgeInsets.only(bottom: 12),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
@@ -479,7 +489,7 @@ class _VentasPageState extends State<VentasPage> {
                               Expanded(
                                 flex: 2,
                                 child: TextFormField(
-                                  initialValue: item["quantity"].toString(),
+                                  controller: qtyControllers[idx],
                                   decoration: const InputDecoration(
                                     labelText: "Cant.",
                                     isDense: true,
@@ -493,10 +503,8 @@ class _VentasPageState extends State<VentasPage> {
                                     return null;
                                   },
                                   onChanged: (val) {
-                                    setStateSB(() {
-                                      item["quantity"] =
-                                          int.tryParse(val) ?? item["quantity"];
-                                    });
+                                    item["quantity"] = int.tryParse(val) ?? item["quantity"];
+                                    setStateSB(() {});
                                   },
                                 ),
                               ),
@@ -652,8 +660,10 @@ class _VentasPageState extends State<VentasPage> {
   Widget build(BuildContext context) {
     final mobile = isMobile(context);
     return Scaffold(
-      appBar: AppHeader(parentContext: context),
-      drawer: mobile ? AppDrawer(parentContext: context) : null,
+      appBar: AppHeader(parentContext: context, activePage: 'Ventas'),
+      drawer: isMobile(context)
+          ? AppDrawer(parentContext: context, activePage: 'Ventas')
+          : null,
       floatingActionButton: FloatingActionButton(
         onPressed: openCreateDialog,
         backgroundColor: Colors.deepPurple,

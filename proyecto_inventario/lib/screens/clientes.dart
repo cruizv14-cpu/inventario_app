@@ -227,8 +227,8 @@ class _ClientesPageState extends State<ClientesPage> {
   Widget build(BuildContext context) {
     final mobile = isMobile(context);
     return Scaffold(
-      appBar: AppHeader(parentContext: context),
-      drawer: mobile ? AppDrawer(parentContext: context) : null,
+      appBar: AppHeader(parentContext: context, activePage: 'Clientes'),
+      drawer: mobile ? AppDrawer(parentContext: context, activePage: 'Clientes') : null,
       floatingActionButton: FloatingActionButton(
         onPressed: () => openFormDialog(),
         backgroundColor: Colors.deepPurple,

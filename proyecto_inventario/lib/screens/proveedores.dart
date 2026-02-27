@@ -223,8 +223,8 @@ class _ProveedoresPageState extends State<ProveedoresPage> {
   Widget build(BuildContext context) {
     final mobile = isMobile(context);
     return Scaffold(
-      appBar: AppHeader(parentContext: context),
-      drawer: mobile ? AppDrawer(parentContext: context) : null,
+      appBar: AppHeader(parentContext: context, activePage: 'Proveedores'),
+      drawer: mobile ? AppDrawer(parentContext: context, activePage: 'Proveedores') : null,
       floatingActionButton: FloatingActionButton(
         onPressed: () => openFormDialog(), backgroundColor: Colors.deepPurple,
         child: const Icon(Icons.add, color: Colors.white),

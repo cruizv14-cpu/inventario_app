@@ -312,8 +312,8 @@ class _ProductosPageState extends State<ProductosPage> {
   Widget build(BuildContext context) {
     final mobile = isMobile(context);
     return Scaffold(
-      appBar: AppHeader(parentContext: context),
-      drawer: mobile ? AppDrawer(parentContext: context) : null,
+      appBar: AppHeader(parentContext: context, activePage: 'Productos'),
+      drawer: mobile ? AppDrawer(parentContext: context, activePage: 'Productos') : null,
       floatingActionButton: FloatingActionButton(
         onPressed: () => openFormDialog(),
         backgroundColor: Colors.deepPurple,

@@ -12,8 +12,9 @@ import '../utils/responsive.dart';
 
 class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final BuildContext parentContext;
+  final String activePage;
 
-  const AppHeader({super.key, required this.parentContext});
+  const AppHeader({super.key, required this.parentContext, this.activePage = ""});
 
   // Definición centralizada de las rutas del menú
   List<Map<String, dynamic>> get _menuItems => [
@@ -92,14 +93,12 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
             children: [
               Text('Sistema de Inventario',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              Text('Huevos MARA', style: TextStyle(fontSize: 12)),
+              const Text('Huevos MARA', style: TextStyle(fontSize: 12)),
             ],
           ),
         ],
       ),
       centerTitle: false,
-      // En móvil: el drawer se abre con el ícono de hamburguesa automático
-      // En desktop: botones en la barra superior
       actions: mobile
           ? [
               IconButton(
@@ -113,22 +112,29 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    ..._menuItems.map((item) => Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 2),
-                          child: ElevatedButton.icon(
-                            icon: Icon(item['icon'] as IconData, size: 18),
-                            label: Text(item['label'] as String),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: Colors.deepPurple,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 8),
-                            ),
-                            onPressed: () =>
-                                (item['onTap'] as Function(BuildContext))(
-                                    parentContext),
+                    ..._menuItems.map((item) {
+                      final bool isActive = item['label'] == activePage;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: ElevatedButton.icon(
+                          icon: Icon(item['icon'] as IconData, size: 18),
+                          label: Text(item['label'] as String),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isActive ? Colors.deepPurple.shade900 : Colors.white,
+                            foregroundColor: isActive ? Colors.white : Colors.deepPurple,
+                            elevation: isActive ? 4 : 1,
+                            side: isActive ? const BorderSide(color: Colors.white, width: 1.5) : null,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
                           ),
-                        )),
+                          onPressed: () {
+                            if (!isActive) {
+                              (item['onTap'] as Function(BuildContext))(parentContext);
+                            }
+                          },
+                        ),
+                      );
+                    }),
                     const SizedBox(width: 12),
                     ElevatedButton.icon(
                       icon: const Icon(Icons.logout, size: 18),
@@ -156,8 +162,9 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
 /// Drawer que se usa en pantallas móviles
 class AppDrawer extends StatelessWidget {
   final BuildContext parentContext;
+  final String activePage;
 
-  const AppDrawer({super.key, required this.parentContext});
+  const AppDrawer({super.key, required this.parentContext, this.activePage = ""});
 
   @override
   Widget build(BuildContext context) {
@@ -177,7 +184,7 @@ class AppDrawer extends StatelessWidget {
             child: const Row(
               children: [
                 Icon(Icons.egg, color: Colors.white, size: 40),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,16 +206,28 @@ class AppDrawer extends StatelessWidget {
             child: ListView(
               padding: EdgeInsets.zero,
               children: items
-                  .map((item) => ListTile(
-                        leading: Icon(item['icon'] as IconData,
-                            color: Colors.deepPurple),
-                        title: Text(item['label'] as String),
-                        onTap: () {
-                          Navigator.pop(context); // cierra el drawer
-                          (item['onTap'] as Function(BuildContext))(
-                              parentContext);
-                        },
-                      ))
+                  .map((item) {
+                    final bool isActive = item['label'] == activePage;
+                    return ListTile(
+                      leading: Icon(item['icon'] as IconData,
+                          color: isActive ? Colors.deepPurple : Colors.grey),
+                      title: Text(
+                        item['label'] as String,
+                        style: TextStyle(
+                          color: isActive ? Colors.deepPurple : Colors.black87,
+                          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                      selected: isActive,
+                      selectedTileColor: Colors.deepPurple.withOpacity(0.1),
+                      onTap: () {
+                        Navigator.pop(context); // cierra el drawer
+                        if (!isActive) {
+                          (item['onTap'] as Function(BuildContext))(parentContext);
+                        }
+                      },
+                    );
+                  })
                   .toList(),
             ),
           ),

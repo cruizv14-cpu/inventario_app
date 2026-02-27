@@ -379,8 +379,8 @@ class _MermasPageState extends State<MermasPage> {
   Widget build(BuildContext context) {
     final mobile = isMobile(context);
     return Scaffold(
-      appBar: AppHeader(parentContext: context),
-      drawer: mobile ? AppDrawer(parentContext: context) : null,
+      appBar: AppHeader(parentContext: context, activePage: 'Mermas'),
+      drawer: mobile ? AppDrawer(parentContext: context, activePage: 'Mermas') : null,
       floatingActionButton: FloatingActionButton(
         onPressed: openCreateDialog,
         backgroundColor: Colors.deepPurple,
