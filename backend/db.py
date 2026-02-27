@@ -798,3 +798,83 @@ def obtener_resumen_dashboard():
         }
     finally:
         release_connection(con)
+
+# -------------------------------------------------------
+# FUNCIONES PARA REPORTE PDF CON FILTRO DE PERÍODO
+# -------------------------------------------------------
+
+def listar_ventas_periodo(fecha_desde: str, fecha_hasta: str):
+    """Retorna ventas del período con su detalle de productos."""
+    con = get_connection()
+    try:
+        cur = con.cursor(cursor_factory=DictCursor)
+        cur.execute("""
+            SELECT v.id_venta, v.fecha, c.nombre AS cliente,
+                   v.subtotal, v.descuento, v.iva, v.total
+            FROM ventas v
+            LEFT JOIN clientes c ON v.id_cliente = c.id_cliente
+            WHERE v.fecha::date BETWEEN %s AND %s
+            ORDER BY v.fecha ASC
+        """, (fecha_desde, fecha_hasta))
+        ventas = [dict(r) for r in cur.fetchall()]
+
+        # Obtener el detalle de productos por venta
+        for venta in ventas:
+            cur.execute("""
+                SELECT pr.nombre AS producto, dv.cantidad, dv.precio_unitario, dv.subtotal
+                FROM detalle_ventas dv
+                JOIN productos pr ON dv.id_producto = pr.id_producto
+                WHERE dv.id_venta = %s
+            """, (venta["id_venta"],))
+            venta["items"] = [dict(r) for r in cur.fetchall()]
+
+        return ventas
+    finally:
+        release_connection(con)
+
+
+def listar_compras_periodo(fecha_desde: str, fecha_hasta: str):
+    """Retorna compras del período con su detalle de productos."""
+    con = get_connection()
+    try:
+        cur = con.cursor(cursor_factory=DictCursor)
+        cur.execute("""
+            SELECT c.id_compra, c.fecha, p.nombre AS proveedor,
+                   c.subtotal, c.total
+            FROM compras c
+            LEFT JOIN proveedores p ON c.id_proveedor = p.id_proveedor
+            WHERE c.fecha::date BETWEEN %s AND %s
+            ORDER BY c.fecha ASC
+        """, (fecha_desde, fecha_hasta))
+        compras = [dict(r) for r in cur.fetchall()]
+
+        for compra in compras:
+            cur.execute("""
+                SELECT pr.nombre AS producto, dc.cantidad, dc.precio_unitario, dc.subtotal
+                FROM detalle_compras dc
+                JOIN productos pr ON dc.id_producto = pr.id_producto
+                WHERE dc.id_compra = %s
+            """, (compra["id_compra"],))
+            compra["items"] = [dict(r) for r in cur.fetchall()]
+
+        return compras
+    finally:
+        release_connection(con)
+
+
+def listar_mermas_periodo(fecha_desde: str, fecha_hasta: str):
+    """Retorna mermas del período."""
+    con = get_connection()
+    try:
+        cur = con.cursor(cursor_factory=DictCursor)
+        cur.execute("""
+            SELECT m.id_merma, m.fecha, p.nombre AS producto,
+                   m.cantidad, m.motivo, m.observacion
+            FROM mermas m
+            JOIN productos p ON m.id_producto = p.id_producto
+            WHERE m.fecha::date BETWEEN %s AND %s
+            ORDER BY m.fecha ASC
+        """, (fecha_desde, fecha_hasta))
+        return [dict(r) for r in cur.fetchall()]
+    finally:
+        release_connection(con)
