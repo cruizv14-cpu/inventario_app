@@ -173,10 +173,12 @@ class _VentasPageState extends State<VentasPage> {
                   ...detalle.map<Widget>((d) => Text(
                       "${d['producto']} — ${d['cantidad']} x ${d['precio_unitario']} = ${d['subtotal']}")),
                   const SizedBox(height: 10),
-                  Text("Subtotal: \$${venta['subtotal']}"),
-                  Text("Descuento: \$${venta['descuento']}"),
-                  Text("IVA: \$${venta['iva']}"),
-                  Text("Total: \$${venta['total']}"),
+                  Text("Subtotal: \$${venta['subtotal'].toStringAsFixed(0)}"),
+                  Text("Descuento: \$${venta['descuento'].toStringAsFixed(0)}"),
+                  Text("IVA Informativo (19%): \$${venta['iva']}"),
+                  const Divider(),
+                  Text("Total: \$${venta['total'].toStringAsFixed(0)}", 
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 ],
               ),
             ),
@@ -571,14 +573,14 @@ class _VentasPageState extends State<VentasPage> {
                             Builder(builder: (_) {
                               final subtotal = calcularSubtotal();
                               final descuento = double.tryParse(descuentoCtrl.text) ?? 0.0;
-                              final iva = double.parse(((subtotal - descuento) * 0.19).toStringAsFixed(2));
-                              final total = subtotal - descuento + iva;
+                              final iva = (subtotal - descuento) * 0.19;
+                              final total = subtotal - descuento;
                               
                               return Column(
                                 children: [
                                   _buildSummaryRow("Subtotal:", "\$${subtotal.toStringAsFixed(0)}"),
                                   _buildSummaryRow("Descuento:", "-\$${descuento.toStringAsFixed(0)}"),
-                                  _buildSummaryRow("IVA (19%):", "+\$${iva.toStringAsFixed(0)}"),
+                                  _buildSummaryRow("IVA Informativo (19%):", "\$${iva.toStringAsFixed(0)}"),
                                   const Divider(),
                                   _buildSummaryRow(
                                     "Total a Pagar:", 

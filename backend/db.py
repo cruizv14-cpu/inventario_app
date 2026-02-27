@@ -397,10 +397,10 @@ def insertar_venta(id_cliente: int | None, productos: list, descuento: float = 0
             subtotal += sub
             detalle_data.append((id_producto, cantidad, precio_unitario, sub))
 
-        # Aplicar descuento y calcular IVA
+        # Aplicar descuento y calcular IVA (Informativo)
         subtotal_con_descuento = subtotal - descuento
         iva = round(subtotal_con_descuento * 0.19, 2)
-        total = subtotal_con_descuento + iva
+        total = subtotal_con_descuento  # El IVA no se suma al total
 
         # Insertar cabecera de la venta
         cur.execute("""

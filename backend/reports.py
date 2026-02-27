@@ -305,7 +305,7 @@ def generar_reporte_pdf(
         ("Descuentos otorgados", f"${suma_descuento:,.0f}", COLOR_WARNING),
     ])
     kpi_row([
-        ("IVA recaudado (19%)", f"${suma_iva:,.0f}", COLOR_ACCENT),
+        ("IVA Informativo (19%)", f"${suma_iva:,.0f}", COLOR_ACCENT),
         ("Ticket promedio", f"${(suma_ventas/total_ventas if total_ventas else 0):,.0f}", COLOR_PRIMARY),
         ("", "", colors.white),
     ])
